@@ -1,7 +1,24 @@
+<div align="center">
 
 # Jerebu  
 
 > Crowdsourced Air Quality & Haze Tracker
+
+[Documentation](./assets/docs) · [Live Demo](https://mhdhamka.github.io/jerebu/) · [Report Bug](https://github.com/mhdhamka/jerebu/issues) · [Request Feature](https://github.com/mhdhamka/jerebu/issues)
+
+![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-Bundler-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-API-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-Geospatial-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Scikit-learn](https://img.shields.io/badge/Scikit--learn-DBSCAN-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
+
+</div>
+
+---
+
+# Overview
 
 A community-driven, full-stack web application designed to track air quality and haze incidents across Southeast Asia, specifically inspired by the recurring haze affecting Sarawak, Malaysia, Borneo, and neighboring Kalimantan fire zones. 
 
@@ -22,16 +39,18 @@ Official air quality monitoring stations can often be sparse or slow to reflect 
 
 ## The Technology Stack
 
-* **Frontend:** Vue.js / Vite (interactive map interface, dynamic report forms, and dashboard).
-* **Backend API & Management:** Laravel (handles user accounts, historical data storage, official APIMS/NEA station synchronization, and proxying).
-* **In-Memory Store & Cache:** Redis (caches hourly government AQI data and manages geospatial sorted sets for rapid spatial queries).
-* **AI & Data Science Engine:** Python FastAPI, scikit-learn, and NumPy (handles DBSCAN spatial clustering and NLP sentiment panic scoring).
+| Component | Technology | Description & Responsibilities |
+| :--- | :--- | :--- |
+| **Frontend** | Vue.js / Vite | Interactive map interface, dynamic report forms, and user dashboard. |
+| **Backend API & Management** | Laravel | Handles user accounts, historical data storage, official APIMS/NEA station synchronization, and proxying. |
+| **In-Memory Store & Cache** | Redis | Caches hourly government AQI data and manages geospatial sorted sets for rapid spatial queries. |
+| **AI & Data Science Engine** | Python FastAPI, scikit-learn, NumPy | Handles DBSCAN spatial clustering and NLP sentiment panic scoring. |
 
 ---
 
 ## Getting Started Locally
 
-To run the complete Jerebu Watch stack locally, you will need to run the frontend and your chosen backend services concurrently across separate terminal windows.
+To run the complete Jerebu stack locally, you will need to run the frontend and your chosen backend services concurrently across separate terminal windows.
 
 ### 1. Frontend Setup (Vue.js)
 ```bash
@@ -45,21 +64,12 @@ npm run dev
 
 ### 2. Backend Services
 
-#### Option A: FastAPI AI Engine
+#### FastAPI AI Engine
 
 ```bash
 cd backend/fastapi
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
-
-```
-
-#### Option B: Laravel API Gateway
-
-```bash
-cd backend/laravel
-composer install
-php artisan serve --port=8001
 
 ```
 
