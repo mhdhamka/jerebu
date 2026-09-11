@@ -25,7 +25,6 @@
           {{ activeLayerCount }}
         </span>
       </div>
-      <span>Map Layers</span>
       <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono font-medium">({{ activeLayerCount }}/3)</span>
     </button>
 

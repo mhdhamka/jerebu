@@ -13,7 +13,6 @@ app = FastAPI(
 )
 
 # --- Enhanced Models with Validation ---
-
 class UserReportModel(BaseModel):
     id: str
     lat: float = Field(..., ge=-90.0, le=90.0)

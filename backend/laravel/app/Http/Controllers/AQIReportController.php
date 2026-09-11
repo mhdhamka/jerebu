@@ -6,6 +6,7 @@ use App\Models\UserReport;
 use App\Services\RedisGeoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class AQIReportController extends Controller
@@ -34,7 +35,7 @@ class AQIReportController extends Controller
     }
 
     /**
-     * Query reports within radius using Redis Geospatial index (GEORADIUS).
+     * Query reports within radius using Redis Geospatial index (GEORADIUS/GEOSEARCH).
      */
     public function searchByRadius(Request $request)
     {
@@ -67,7 +68,7 @@ class AQIReportController extends Controller
 
     /**
      * Store new ground truth report.
-     * Evaluates trusted reporter weighting, indexes into Redis, and pings FastAPI.
+     * Evaluates trusted reporter weighting, indexes into Redis, and safely pings FastAPI.
      */
     public function store(Request $request)
     {
@@ -89,15 +90,22 @@ class AQIReportController extends Controller
         // Estimate local AQI based on visibility and burning smell
         $estimatedAqi = $this->estimateAqi($validated['visibility_meters'], $validated['smell_score']);
 
-        // Dispatch text to Python FastAPI NLP sentiment analyzer
-        $fastApiResponse = Http::timeout(3)->post(config('services.fastapi.url') . '/api/ai/sentiment-panic', [
-            'text' => $validated['description'],
-            'symptoms' => $validated['symptoms'] ?? [],
-            'visibility_meters' => $validated['visibility_meters'],
-            'smell_score' => $validated['smell_score']
-        ]);
+        // Safely dispatch text to Python FastAPI NLP sentiment analyzer with error fallback
+        $panicScore = 50;
+        try {
+            $fastApiResponse = Http::timeout(3)->post(config('services.fastapi.url') . '/api/ai/sentiment-panic', [
+                'text' => $validated['description'],
+                'symptoms' => $validated['symptoms'] ?? [],
+                'visibility_meters' => $validated['visibility_meters'],
+                'smell_score' => $validated['smell_score']
+            ]);
 
-        $panicScore = $fastApiResponse->successful() ? $fastApiResponse->json('panic_score', 50) : 50;
+            if ($fastApiResponse->successful()) {
+                $panicScore = $fastApiResponse->json('panic_score', 50);
+            }
+        } catch (\Exception $e) {
+            Log::warning('FastAPI sentiment engine unreachable during report creation: ' . $e->getMessage());
+        }
 
         $report = UserReport::create([
             'user_id' => $user?->id,
@@ -123,6 +131,53 @@ class AQIReportController extends Controller
             'status' => 'created',
             'data' => $report
         ], 201);
+    }
+
+    /**
+     * Proxy request to Python FastAPI DBSCAN anomaly clustering engine.
+     */
+    public function getFastApiAnomalies(Request $request)
+    {
+        try {
+            // Gather recent active reports and official cached stations
+            $reports = UserReport::orderBy('created_at', 'desc')->limit(200)->get();
+            $officialStations = $this->geoService->getCachedOfficialStations() ?? [];
+
+            // Format payloads for FastAPI expectations
+            $formattedReports = $reports->map(fn($r) => [
+                'id' => (string) $r->id,
+                'lat' => (float) $r->lat,
+                'lng' => (float) $r->lng,
+                'estimated_aqi' => (int) $r->estimated_aqi,
+                'trust_weight' => (float) $r->trust_weight,
+                'visibility_meters' => (int) $r->visibility_meters,
+                'smell_score' => (int) $r->smell_score,
+                'area_name' => (string) $r->area_name
+            ])->toArray();
+
+            $response = Http::timeout(5)->post(config('services.fastapi.url') . '/api/ai/dbscan-cluster', [
+                'reports' => $formattedReports,
+                'official_stations' => $officialStations,
+                'eps_km' => 8.5,
+                'min_samples' => 2
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'FastAPI clustering service returned non-successful code.'
+            ], 502);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to communicate with FastAPI cluster engine: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'AI cluster service unavailable.'
+            ], 503);
+        }
     }
 
     protected function estimateAqi(int $visibilityMeters, int $smellScore): int
