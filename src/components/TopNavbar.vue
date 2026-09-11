@@ -3,9 +3,10 @@
     
     <!-- Logo & Title -->
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shadow-sm shrink-0">
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+      <!-- Modernized Haze Icon Container -->
+      <div class="w-9 h-9 bg-gradient-to-br from-orange-400 to-amber-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0 ring-2 ring-orange-500/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 014 0h.5a2 2 0 002-2V7.5M12 21a9 9 0 110-18 9 9 0 010 18z" />
         </svg>
       </div>
       <div class="flex items-center">
