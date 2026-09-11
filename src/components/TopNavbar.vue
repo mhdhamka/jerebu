@@ -22,9 +22,13 @@
     <!-- Right Controls: Master Hub Dropdown Toggle -->
     <div class="relative flex items-center gap-3">
       
-      <!-- Quick Regional Pill Preview (Visible on desktop) -->
-      <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-full text-xs">
-        <span class="text-slate-600 dark:text-slate-300 font-medium">Regional Avg: <strong class="text-orange-600 dark:text-orange-400">142 Unhealthy</strong></span>
+      <!-- Quick Regional Pill Preview (Styled like the map marker card) -->
+      <div class="hidden md:flex flex-col items-center justify-center px-3.5 py-1 bg-orange-500 text-white rounded-xl shadow-sm border border-orange-400 text-center leading-tight">
+        <span class="text-[9px] uppercase tracking-wider font-bold opacity-90">Regional Avg</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm font-black tracking-tight">142</span>
+          <span class="text-[10px] font-semibold opacity-95">Unhealthy</span>
+        </div>
       </div>
 
       <!-- Master Control Hub Button -->

@@ -11,25 +11,66 @@
       />
     </div>
 
-    <!-- Hotspot Quick Jumps Bar -->
-    <div class="absolute top-20 sm:top-20 left-3 sm:left-4 z-[400] flex flex-wrap gap-1.5 p-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-xl max-w-[90vw] sm:max-w-none">
-      <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2.5 py-1.5 flex items-center gap-1.5">
-        Hotspots
-      </span>
-      <button
-        v-for="region in regions"
-        :key="region.name"
-        @click="flyToRegion(region)"
-        :class="[
-          'text-xs px-3.5 py-1.5 rounded-xl font-semibold transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95',
-          activeRegion === region.name
-            ? 'bg-gradient-to-r from-slate-900 to-slate-800 text-white dark:from-orange-500 dark:to-amber-600 dark:text-white shadow-md shadow-orange-500/20'
-            : 'bg-transparent text-slate-600 hover:bg-slate-200/60 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white'
-        ]"
-      >
-        <span>{{ region.flag }}</span>
-        <span>{{ region.name }}</span>
-      </button>
+    <!-- Collapsible Hotspot Dropdown Selector (Option 1) -->
+    <div class="absolute top-20 sm:top-20 left-3 sm:left-4 z-[999]" ref="dropdownContainer">
+      <div class="relative">
+        <button
+          type="button"
+          @click="isRegionDropdownOpen = !isRegionDropdownOpen"
+          class="flex items-center gap-2.5 px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-xl text-xs font-bold text-slate-800 dark:text-white cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
+        >
+          <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Hotspot:</span>
+          <span class="flex items-center gap-1.5">
+            <span>{{ currentRegionObject?.flag }}</span>
+            <span>{{ currentRegionObject?.name }}</span>
+          </span>
+          <svg 
+            class="w-4 h-4 text-slate-400 transition-transform duration-200 ml-1"
+            :class="{ 'rotate-180': isRegionDropdownOpen }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu List -->
+        <transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+          enter-to-class="transform scale-100 opacity-100 translate-y-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="transform scale-100 opacity-100 translate-y-0"
+          leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+        >
+          <div 
+            v-if="isRegionDropdownOpen"
+            class="absolute left-0 mt-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-2xl py-1.5 z-50 overflow-hidden"
+          >
+            <div class="px-3 py-1.5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800/80 mb-1">
+              Select Region Focus
+            </div>
+            <button
+              v-for="region in regions"
+              :key="region.name"
+              @click="selectRegion(region)"
+              :class="[
+                'w-full text-left text-xs px-3.5 py-2 font-semibold transition-all flex items-center justify-between cursor-pointer',
+                activeRegion === region.name
+                  ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/80'
+              ]"
+            >
+              <span class="flex items-center gap-2">
+                <span>{{ region.flag }}</span>
+                <span>{{ region.name }}</span>
+              </span>
+              <span v-if="activeRegion === region.name" class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+            </button>
+          </div>
+        </transition>
+      </div>
     </div>
 
     <!-- Map Layer Control Panel -->
@@ -59,47 +100,75 @@
       </button>
     </div>
 
-    <!-- Modern Glassmorphism Map Legend Card -->
-    <div class="absolute bottom-28 sm:bottom-28 right-4 sm:right-6 z-[400] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800/80 w-52 text-xs hidden sm:block transition-all duration-300">
-      <h3 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
-        <span>Air Quality Scale</span>
-      </h3>
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
-          <div class="flex items-center gap-2">
-            <div class="w-3.5 h-3.5 bg-emerald-500 rounded-full shadow-sm ring-2 ring-emerald-500/20"></div>
-            <span>Good</span>
+    <!-- Compact Symbol Air Quality Scale Legend Button -->
+    <div class="absolute bottom-24 sm:bottom-28 right-4 sm:right-6 z-[400]" ref="legendContainer">
+      <div class="relative">
+        <button
+          type="button"
+          @click="isLegendOpen = !isLegendOpen"
+          class="w-11 h-11 flex items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-xl text-slate-700 dark:text-slate-200 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
+          title="Air Quality Scale Legend"
+        >
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </button>
+
+        <!-- Dropdown / Popup Content -->
+        <transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="transform scale-95 opacity-0 translate-y-2"
+          enter-to-class="transform scale-100 opacity-100 translate-y-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="transform scale-100 opacity-100 translate-y-0"
+          leave-to-class="transform scale-95 opacity-0 translate-y-2"
+        >
+          <div 
+            v-if="isLegendOpen"
+            class="absolute bottom-full mb-2 right-0 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-2xl p-4 z-50 text-xs"
+          >
+            <div class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2">
+              <span>Air Quality Scale</span>
+            </div>
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+                <div class="flex items-center gap-2">
+                  <div class="w-3.5 h-3.5 bg-emerald-500 rounded-full shadow-sm ring-2 ring-emerald-500/20"></div>
+                  <span>Good</span>
+                </div>
+                <span class="font-mono text-[11px] text-slate-400 font-semibold">0–50</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+                <div class="flex items-center gap-2">
+                  <div class="w-3.5 h-3.5 bg-amber-400 rounded-full shadow-sm ring-2 ring-amber-400/20"></div>
+                  <span>Moderate</span>
+                </div>
+                <span class="font-mono text-[11px] text-slate-400 font-semibold">51–100</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+                <div class="flex items-center gap-2">
+                  <div class="w-3.5 h-3.5 bg-orange-500 rounded-full shadow-sm ring-2 ring-orange-500/20"></div>
+                  <span>Unhealthy</span>
+                </div>
+                <span class="font-mono text-[11px] text-slate-400 font-semibold">101–200</span>
+              </div>
+              <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+                <div class="flex items-center gap-2">
+                  <div class="w-3.5 h-3.5 bg-red-600 rounded-full shadow-sm ring-2 ring-red-600/20"></div>
+                  <span>Hazardous</span>
+                </div>
+                <span class="font-mono text-[11px] text-slate-400 font-semibold">201+</span>
+              </div>
+            </div>
           </div>
-          <span class="font-mono text-[11px] text-slate-400 font-semibold">0–50</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
-          <div class="flex items-center gap-2">
-            <div class="w-3.5 h-3.5 bg-amber-400 rounded-full shadow-sm ring-2 ring-amber-400/20"></div>
-            <span>Moderate</span>
-          </div>
-          <span class="font-mono text-[11px] text-slate-400 font-semibold">51–100</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
-          <div class="flex items-center gap-2">
-            <div class="w-3.5 h-3.5 bg-orange-500 rounded-full shadow-sm ring-2 ring-orange-500/20"></div>
-            <span>Unhealthy</span>
-          </div>
-          <span class="font-mono text-[11px] text-slate-400 font-semibold">101–200</span>
-        </div>
-        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
-          <div class="flex items-center gap-2">
-            <div class="w-3.5 h-3.5 bg-red-600 rounded-full shadow-sm ring-2 ring-red-600/20"></div>
-            <span>Hazardous</span>
-          </div>
-          <span class="font-mono text-[11px] text-slate-400 font-semibold">201+</span>
-        </div>
+        </transition>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch, ref, onUnmounted } from 'vue';
+import { onMounted, watch, ref, computed, onUnmounted } from 'vue';
 import L from 'leaflet';
 import { getAQIColor } from '../data/officialStations.js';
 import MapLayerControl from './MapLayerControl.vue';
@@ -134,6 +203,11 @@ let searchLocationMarker = null;
 let currentSearchedLoc = null;
 
 const activeRegion = ref('Miri (Hotspot)');
+const isRegionDropdownOpen = ref(false);
+const isLegendOpen = ref(false);
+
+const dropdownContainer = ref(null);
+const legendContainer = ref(null);
 
 const filters = ref({
   official: true,
@@ -151,10 +225,25 @@ const regions = [
   { name: 'Riau Sumatra', flag: '🇮🇩', lat: 0.507, lng: 101.447, zoom: 9 }
 ];
 
-function flyToRegion(region) {
+const currentRegionObject = computed(() => {
+  return regions.find(r => r.name === activeRegion.value) || regions[0];
+});
+
+function selectRegion(region) {
   activeRegion.value = region.name;
+  isRegionDropdownOpen.value = false;
   if (map) {
     map.flyTo([region.lat, region.lng], region.zoom, { duration: 1.5, easeLinearity: 0.25 });
+  }
+}
+
+// Close dropdowns when clicking outside
+function handleClickOutside(e) {
+  if (dropdownContainer.value && !dropdownContainer.value.contains(e.target)) {
+    isRegionDropdownOpen.value = false;
+  }
+  if (legendContainer.value && !legendContainer.value.contains(e.target)) {
+    isLegendOpen.value = false;
   }
 }
 
@@ -164,7 +253,6 @@ function setTileLayer() {
     map.removeLayer(tileLayerInstance);
   }
   
-  // Both dark and light mode use standard OpenStreetMap tiles
   tileLayerInstance = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
@@ -193,6 +281,7 @@ onMounted(() => {
   initMap();
   renderAllLayers();
   syncLayers();
+  document.addEventListener('click', handleClickOutside);
 });
 
 onUnmounted(() => {
@@ -200,6 +289,7 @@ onUnmounted(() => {
     map.remove();
     map = null;
   }
+  document.removeEventListener('click', handleClickOutside);
 });
 
 watch(() => props.officialStations, () => renderOfficialMarkers(), { deep: true });

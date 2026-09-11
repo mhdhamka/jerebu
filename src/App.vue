@@ -45,7 +45,9 @@
           @click="isLeftFeedVisible = true"
           class="absolute top-4 left-4 z-[400] px-3.5 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 shadow-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
         >
-          <span>Open Feed</span>
+          <svg class="w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
         </button>
 
         <HazeMap
@@ -66,28 +68,16 @@
           <button
             type="button"
             @click="openReportModal"
-            class="group relative flex items-center gap-3.5 px-6 py-3.5 bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-2xl shadow-orange-500/40 border border-orange-300/30 cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 select-none overflow-hidden"
+            class="group relative flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-full shadow-2xl shadow-orange-500/40 border border-orange-300/30 cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 select-none overflow-hidden"
             title="Report haze in your neighborhood (Press 'R')"
           >
             <!-- Ambient Light Sweep Animation -->
             <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform"></div>
 
-            <div class="relative flex items-center justify-center">
-              <span class="absolute inline-flex h-full w-full rounded-xl bg-white/40 animate-ping opacity-75"></span>
-              <span class="relative w-9 h-9 rounded-xl bg-white/25 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-                <svg class="w-4 h-4 text-white transform group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-                </svg>
-              </span>
-            </div>
-            
-            <div class="flex flex-col text-left">
-              <span class="tracking-wider leading-none text-white font-black text-xs uppercase flex items-center gap-2">
-                <span>Report Haze</span>
-                <span class="px-1.5 py-0.5 rounded-md bg-black/20 text-[10px] font-mono font-bold text-orange-100 border border-white/10">R</span>
-              </span>
-              <span class="text-[10px] text-orange-100 font-medium leading-tight mt-1 opacity-90">Submit Ground Truth</span>
-            </div>
+            <!-- Plus Icon -->
+            <svg class="relative w-5 h-5 text-white transform group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+            </svg>
           </button>
         </div>
       </section>
