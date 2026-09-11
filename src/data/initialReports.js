@@ -13,14 +13,14 @@ export const INITIAL_REPORTS = [
     visibilityMeters: 800,
     visibilityLabel: 'Poor (< 1km)',
     smellLevel: 'Acrid Burning (Bau Hangit)',
-    smellScore: 4, // 1 to 5
+    smellScore: 4,
     estimatedAqi: 175,
     symptoms: ['Eye Sting (Pedih Mata)', 'Coughing', 'Throat Dryness'],
     description: 'Visibility is poor in Taman Tunku. Can barely see the hilltop water tower 800m away. Strong acrid smell of burnt peat since 5 AM. APIMS station still says 76 but it feels way worse here!',
-    timestamp: '15 mins ago',
+    timestamp: '2026-09-11T10:30:00Z',
     verified: true,
     upvotes: 28,
-    panicScore: 78 // analyzed by Python NLP
+    panicScore: 78
   },
   {
     id: 'rep_102',
@@ -40,7 +40,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 215,
     symptoms: ['Difficulty Breathing', 'Eye Sting (Pedih Mata)', 'Asthma Flare-up'],
     description: 'Smell of burning is strong in Senadin. We are seeing a surge of elderly patients with shortness of breath this morning. Smoke drift from Kuala Baram peat fires is blanketing housing estates.',
-    timestamp: '28 mins ago',
+    timestamp: '2026-09-11T10:17:00Z',
     verified: true,
     upvotes: 54,
     panicScore: 92
@@ -63,7 +63,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 240,
     symptoms: ['Eye Sting (Pedih Mata)', 'Severe Coughing', 'Chest Tightness'],
     description: 'Thick yellowish smoke rolling in across the bypass road. Drivers have hazard lights turned on at 8am. Peat underground fire active in block 4.',
-    timestamp: '40 mins ago',
+    timestamp: '2026-09-11T10:05:00Z',
     verified: true,
     upvotes: 41,
     panicScore: 89
@@ -86,7 +86,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 165,
     symptoms: ['Eye Sting (Pedih Mata)', 'Sneezing'],
     description: 'Ash deposits on parked cars. Washing hung outside smells completely of smoke. Need to keep all windows sealed.',
-    timestamp: '55 mins ago',
+    timestamp: '2026-09-11T09:50:00Z',
     verified: true,
     upvotes: 19,
     panicScore: 65
@@ -109,7 +109,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 125,
     symptoms: ['Throat Dryness'],
     description: 'Haze horizon visible on Guthrie corridor. Smells dry and dusty. Official station reads 115, aligns roughly with local perception.',
-    timestamp: '1 hour ago',
+    timestamp: '2026-09-11T09:45:00Z',
     verified: false,
     upvotes: 8,
     panicScore: 42
@@ -132,7 +132,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 120,
     symptoms: ['Throat Dryness', 'Coughing'],
     description: 'Morning jogging had to be canceled. Hazy silhouette of hills, children coughing on the school bus.',
-    timestamp: '1 hour ago',
+    timestamp: '2026-09-11T09:30:00Z',
     verified: false,
     upvotes: 12,
     panicScore: 50
@@ -155,7 +155,7 @@ export const INITIAL_REPORTS = [
     estimatedAqi: 85,
     symptoms: ['Throat Dryness'],
     description: 'Smoky sunset over UNIMAS campus. Mild burning scent in the evening breeze.',
-    timestamp: '2 hours ago',
+    timestamp: '2026-09-11T08:30:00Z',
     verified: false,
     upvotes: 6,
     panicScore: 35
