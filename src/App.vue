@@ -45,7 +45,6 @@
           @click="isLeftFeedVisible = true"
           class="absolute top-4 left-4 z-[400] px-3.5 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 shadow-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
         >
-          <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
           <span>Open Feed</span>
         </button>
 
@@ -103,7 +102,7 @@
         <DBSCANAnomalyPanel
           v-if="activeRightTab === 'dbscan'"
           :anomalies="anomalyClusters"
-          @close="isRightPanelOpen = false"
+          @close="activeRightTab = null; isRightPanelOpen = false;"
           @recalculate-dbscan="handleRecalculateDBSCAN"
         />
 

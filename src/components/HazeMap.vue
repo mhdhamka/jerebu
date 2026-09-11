@@ -1,39 +1,39 @@
 <template>
-  <div class="relative w-full h-full flex flex-col overflow-hidden bg-slate-100 dark:bg-slate-950">
-    <!-- Map Canvas -->
-    <div id="jerebu-map" class="w-full h-full z-0"></div>
+  <div class="relative w-full h-full flex flex-col overflow-hidden bg-slate-100 dark:bg-slate-950 select-none">
+    <!-- Map Canvas Container -->
+    <div id="jerebu-map" class="w-full h-full z-0 outline-none"></div>
 
-    <!-- Central Floating Sarawak Geolocation Search Bar -->
-    <div class="absolute top-3 sm:top-4 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto z-[410] w-auto sm:w-[480px] max-w-[calc(100vw-24px)]">
+    <!-- Floating Sarawak Geolocation Search Bar -->
+    <div class="absolute top-3 sm:top-5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto z-[410] w-auto sm:w-[500px] max-w-[calc(100vw-24px)] transition-all">
       <SarawakSearchBar
         @select-location="handleLocationSelected"
         @toast="$emit('toast', $event)"
       />
     </div>
 
-    <!-- Hotspot Quick Jumps (Pushed down to prevent search bar collision) -->
-    <div class="absolute top-20 sm:top-20 left-3 sm:left-4 z-[400] flex flex-wrap gap-1 p-1 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-md max-w-[90vw] sm:max-w-none transition-colors duration-200">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 px-2.5 py-1 flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-        Hotspots:
+    <!-- Hotspot Quick Jumps Bar -->
+    <div class="absolute top-20 sm:top-20 left-3 sm:left-4 z-[400] flex flex-wrap gap-1.5 p-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-xl max-w-[90vw] sm:max-w-none">
+      <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 px-2.5 py-1.5 flex items-center gap-1.5">
+        Hotspots
       </span>
       <button
         v-for="region in regions"
         :key="region.name"
         @click="flyToRegion(region)"
         :class="[
-          'text-xs px-3 py-1 rounded-xl font-medium transition-all cursor-pointer whitespace-nowrap',
+          'text-xs px-3.5 py-1.5 rounded-xl font-semibold transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95',
           activeRegion === region.name
-            ? 'bg-slate-900 text-white dark:bg-orange-500 dark:text-white font-semibold shadow-sm'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white'
+            ? 'bg-gradient-to-r from-slate-900 to-slate-800 text-white dark:from-orange-500 dark:to-amber-600 dark:text-white shadow-md shadow-orange-500/20'
+            : 'bg-transparent text-slate-600 hover:bg-slate-200/60 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white'
         ]"
       >
-        {{ region.flag }} {{ region.name }}
+        <span>{{ region.flag }}</span>
+        <span>{{ region.name }}</span>
       </button>
     </div>
 
-    <!-- Dedicated Sleek Map Layer Control Panel (Pushed down accordingly) -->
-    <div class="absolute top-34 sm:top-34 left-3 sm:left-4 z-[400]">
+    <!-- Map Layer Control Panel -->
+    <div class="absolute top-36 sm:top-36 left-3 sm:left-4 z-[400]">
       <MapLayerControl
         v-model="filters"
         :official-count="officialStations.length"
@@ -45,32 +45,54 @@
     <!-- Map Click Picker Notification Banner -->
     <div
       v-if="isPickingLocation"
-      class="absolute top-4 right-4 z-[400] bg-slate-900 dark:bg-slate-800 text-white font-semibold text-xs px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2.5 border border-slate-700 animate-bounce"
+      class="absolute top-4 right-4 z-[400] bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white font-medium text-xs px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-700/80"
     >
-      <span class="w-2 h-2 rounded-full bg-orange-400 animate-ping"></span>
-      <span>Click anywhere on map to position report</span>
-      <button @click="$emit('cancel-pick')" class="ml-2 text-slate-400 hover:text-white underline cursor-pointer text-[11px]">Cancel</button>
+      <span class="relative flex h-2.5 w-2.5">
+        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+      </span>
+      <span>Click anywhere on map to pin report</span>
+      <button 
+        @click="$emit('cancel-pick')" 
+        class="ml-2 px-2 py-1 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] font-semibold"
+      >
+        Cancel
+      </button>
     </div>
 
-    <!-- Sleek Map Legend Card -->
-    <div class="absolute bottom-24 right-4 sm:right-6 z-[400] bg-white dark:bg-slate-900/95 p-3.5 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 w-48 text-[11px] hidden sm:block transition-colors duration-200">
-      <h3 class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">Map Legend</h3>
-      <div class="space-y-1.5">
-        <div class="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-200">
-          <div class="w-3 h-3 bg-emerald-500 rounded-full border border-white dark:border-slate-800 shadow-xs"></div>
-          0–50 Good
+    <!-- Modern Glassmorphism Map Legend Card -->
+    <div class="absolute bottom-6 right-4 sm:right-6 z-[400] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800/80 w-52 text-xs hidden sm:block transition-all duration-300">
+      <h3 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+        <span>Air Quality Scale</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      </h3>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 bg-emerald-500 rounded-full shadow-sm ring-2 ring-emerald-500/20"></div>
+            <span>Good</span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 font-semibold">0–50</span>
         </div>
-        <div class="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-200">
-          <div class="w-3 h-3 bg-amber-400 rounded-full border border-white dark:border-slate-800 shadow-xs"></div>
-          51–100 Moderate
+        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 bg-amber-400 rounded-full shadow-sm ring-2 ring-amber-400/20"></div>
+            <span>Moderate</span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 font-semibold">51–100</span>
         </div>
-        <div class="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-200">
-          <div class="w-3 h-3 bg-orange-500 rounded-full border border-white dark:border-slate-800 shadow-xs"></div>
-          101–200 Unhealthy
+        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 bg-orange-500 rounded-full shadow-sm ring-2 ring-orange-500/20"></div>
+            <span>Unhealthy</span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 font-semibold">101–200</span>
         </div>
-        <div class="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-200">
-          <div class="w-3 h-3 bg-red-600 rounded-full border border-white dark:border-slate-800 shadow-xs"></div>
-          201+ Hazardous
+        <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
+          <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 bg-red-600 rounded-full shadow-sm ring-2 ring-red-600/20"></div>
+            <span>Hazardous</span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 font-semibold">201+</span>
         </div>
       </div>
     </div>
@@ -78,7 +100,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { onMounted, watch, ref, onUnmounted } from 'vue';
 import L from 'leaflet';
 import { getAQIColor } from '../data/officialStations.js';
 import MapLayerControl from './MapLayerControl.vue';
@@ -133,7 +155,7 @@ const regions = [
 function flyToRegion(region) {
   activeRegion.value = region.name;
   if (map) {
-    map.flyTo([region.lat, region.lng], region.zoom, { duration: 1.2 });
+    map.flyTo([region.lat, region.lng], region.zoom, { duration: 1.5, easeLinearity: 0.25 });
   }
 }
 
@@ -143,7 +165,9 @@ function setTileLayer(isDark) {
     map.removeLayer(tileLayerInstance);
   }
   
-  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tileUrl = isDark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   tileLayerInstance = L.tileLayer(tileUrl, {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -157,29 +181,29 @@ function setTileLayer(isDark) {
 
 function syncLayers(currentFilters = filters.value) {
   if (!map) return;
-  if (currentFilters.official) {
-    if (officialMarkersLayer && !map.hasLayer(officialMarkersLayer)) map.addLayer(officialMarkersLayer);
-  } else {
-    if (officialMarkersLayer && map.hasLayer(officialMarkersLayer)) map.removeLayer(officialMarkersLayer);
-  }
+  
+  const manageLayer = (layer, shouldShow) => {
+    if (!layer) return;
+    if (shouldShow && !map.hasLayer(layer)) map.addLayer(layer);
+    else if (!shouldShow && map.hasLayer(layer)) map.removeLayer(layer);
+  };
 
-  if (currentFilters.community) {
-    if (reportsMarkersLayer && !map.hasLayer(reportsMarkersLayer)) map.addLayer(reportsMarkersLayer);
-  } else {
-    if (reportsMarkersLayer && map.hasLayer(reportsMarkersLayer)) map.removeLayer(reportsMarkersLayer);
-  }
-
-  if (currentFilters.anomalies) {
-    if (anomalyOverlayLayer && !map.hasLayer(anomalyOverlayLayer)) map.addLayer(anomalyOverlayLayer);
-  } else {
-    if (anomalyOverlayLayer && map.hasLayer(anomalyOverlayLayer)) map.removeLayer(anomalyOverlayLayer);
-  }
+  manageLayer(officialMarkersLayer, currentFilters.official);
+  manageLayer(reportsMarkersLayer, currentFilters.community);
+  manageLayer(anomalyOverlayLayer, currentFilters.anomalies);
 }
 
 onMounted(() => {
   initMap();
   renderAllLayers();
   syncLayers();
+});
+
+onUnmounted(() => {
+  if (map) {
+    map.remove();
+    map = null;
+  }
 });
 
 watch(() => props.officialStations, () => renderOfficialMarkers(), { deep: true });
@@ -198,10 +222,11 @@ function initMap() {
   map = L.map('jerebu-map', {
     center: [4.450, 114.020],
     zoom: 12,
-    zoomControl: false
+    zoomControl: false,
+    preferCanvas: true
   });
 
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
   setTileLayer(props.isDark);
 
@@ -213,10 +238,10 @@ function initMap() {
     if (props.isPickingLocation) {
       if (tempPickMarker) map.removeLayer(tempPickMarker);
       tempPickMarker = L.circleMarker([e.latlng.lat, e.latlng.lng], {
-        radius: 10,
+        radius: 12,
         fillColor: '#ea580c',
         color: '#ffffff',
-        weight: 3,
+        weight: 3.5,
         fillOpacity: 0.95
       }).addTo(map);
 
@@ -234,9 +259,7 @@ function initMap() {
       e.preventDefault();
       const reportId = shareBtn.getAttribute('data-report-id');
       const rep = props.reports.find(r => String(r.id) === String(reportId));
-      if (rep) {
-        emit('share-report', rep);
-      }
+      if (rep) emit('share-report', rep);
       return;
     }
 
@@ -291,18 +314,16 @@ function handleLocationSelected(loc) {
 
   const iconHtml = `
     <div class="relative flex items-center justify-center">
-      <span class="absolute -top-1.5 -left-1.5 w-11 h-11 rounded-full bg-orange-500/40 animate-ping"></span>
-      <span class="absolute -top-3 -left-3 w-14 h-14 rounded-full bg-orange-500/15 animate-pulse"></span>
       <div style="
         background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-        border: 2.5px solid ${pinBorder};
-        width: 36px;
-        height: 36px;
+        border: 3px solid ${pinBorder};
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 25px -3px rgba(234, 88, 12, 0.5);
+        box-shadow: 0 12px 28px -4px rgba(234, 88, 12, 0.6);
       ">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -315,46 +336,45 @@ function handleLocationSelected(loc) {
   const searchPinIcon = L.divIcon({
     html: iconHtml,
     className: 'custom-search-highlight-pin',
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -20]
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -22]
   });
 
   searchLocationMarker = L.marker([loc.lat, loc.lng], { icon: searchPinIcon }).addTo(map);
 
   const nearestInfoHtml = nearestStation
     ? `
-      <div class="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+      <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px]">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400">Nearest Station</span>
-          <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">${minDistance} km away</span>
+          <span class="text-[10px] uppercase font-bold text-slate-400">Nearest Station</span>
+          <span class="text-[10px] font-mono text-slate-400 font-semibold">${minDistance} km away</span>
         </div>
         <div class="flex items-center justify-between mt-1">
           <span class="font-bold text-slate-800 dark:text-slate-200 truncate mr-2">${nearestStation.name}</span>
           <span class="font-mono font-bold text-orange-600 dark:text-orange-400 shrink-0">${nearestStation.aqi} AQI</span>
         </div>
-        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">${nearestStation.status} (${nearestStation.pm25} µg/m³ PM2.5)</div>
       </div>
     `
     : '';
 
   const popupHtml = `
-    <div class="p-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-[260px] max-w-[320px]">
-      <div class="flex items-center justify-between gap-2 mb-1">
-        <span class="text-[10px] font-bold px-2 py-0.5 bg-orange-100 dark:bg-orange-950/70 text-orange-700 dark:text-orange-300 rounded-md uppercase">
+    <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl min-w-[260px] max-w-[320px]">
+      <div class="flex items-center justify-between gap-2 mb-1.5">
+        <span class="text-[10px] font-extrabold px-2.5 py-0.5 bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 rounded-lg uppercase tracking-wide">
           ${loc.division || 'Sarawak'}
         </span>
         <span class="text-[10px] font-mono text-slate-400">${loc.lat.toFixed(4)}°, ${loc.lng.toFixed(4)}°</span>
       </div>
-      <div class="text-base font-black text-slate-800 dark:text-slate-100 leading-snug">${loc.name}</div>
-      ${loc.description ? `<div class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-normal">${loc.description}</div>` : ''}
+      <div class="text-base font-black text-slate-900 dark:text-white leading-snug">${loc.name}</div>
+      ${loc.description ? `<div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${loc.description}</div>` : ''}
       
       ${nearestInfoHtml}
 
-      <div class="mt-3.5 flex items-center gap-2">
+      <div class="mt-4 flex items-center gap-2">
         <button
           type="button"
-          class="btn-report-here-action flex-1 py-2 px-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold text-center cursor-pointer shadow-sm transition-all"
+          class="btn-report-here-action flex-1 py-2.5 px-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-2xl text-xs font-bold text-center cursor-pointer shadow-md shadow-orange-500/20 transition-all active:scale-95"
           data-loc-name="${loc.name}"
           data-loc-lat="${loc.lat}"
           data-loc-lng="${loc.lng}"
@@ -363,7 +383,7 @@ function handleLocationSelected(loc) {
         </button>
         <button
           type="button"
-          class="btn-dismiss-search-pin py-2 px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer transition-all"
+          class="btn-dismiss-search-pin p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-semibold cursor-pointer transition-all"
           title="Dismiss pin"
         >
           ✕
@@ -396,18 +416,18 @@ function renderOfficialMarkers() {
     const colorInfo = getAQIColor(st.aqi);
 
     const iconHtml = `
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center group cursor-pointer">
         <div style="
           background-color: ${colorInfo.bg};
           color: #ffffff;
-          width: 42px;
-          height: 42px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
           border: 3.5px solid ${badgeBorder};
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 10px 20px -4px rgba(0, 0, 0, 0.3);
           font-family: 'Space Mono', monospace;
           font-weight: 800;
           font-size: 13px;
@@ -418,7 +438,7 @@ function renderOfficialMarkers() {
           background-color: ${labelBg};
           color: ${labelText};
           border: 1px solid ${labelBorder};
-        " class="px-2 py-0.5 rounded-md shadow-xs text-[10px] font-bold mt-1 whitespace-nowrap">
+        " class="px-2.5 py-0.5 rounded-lg shadow-sm text-[10px] font-bold mt-1 whitespace-nowrap">
           ${st.city || st.name.split(' ')[0]}
         </div>
       </div>
@@ -428,33 +448,33 @@ function renderOfficialMarkers() {
       html: iconHtml,
       className: 'custom-official-pin',
       iconSize: [60, 60],
-      iconAnchor: [30, 21]
+      iconAnchor: [30, 22]
     });
 
     const marker = L.marker([st.lat, st.lng], { icon: customIcon });
 
     const popupHtml = `
-      <div class="p-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-[260px]">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
-          <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-400">Official Station</span>
-          <span class="text-[11px] px-2 py-0.5 rounded-full font-bold" style="background:${colorInfo.bg}22; color:${colorInfo.bg}; border: 1px solid ${colorInfo.bg}44;">${colorInfo.label}</span>
+      <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl min-w-[260px]">
+        <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
+          <span class="text-[10px] uppercase font-black tracking-widest text-slate-400">Official Station</span>
+          <span class="text-[10px] px-2.5 py-0.5 rounded-lg font-bold uppercase" style="background:${colorInfo.bg}20; color:${colorInfo.bg}; border: 1px solid ${colorInfo.bg}40;">${colorInfo.label}</span>
         </div>
-        <div class="text-base font-bold text-slate-800 dark:text-slate-100 mb-0.5">${st.name}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3">${st.source}</div>
+        <div class="text-base font-bold text-slate-900 dark:text-white mb-0.5">${st.name}</div>
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3.5">${st.source}</div>
 
-        <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60 mb-3">
+        <div class="grid grid-cols-2 gap-2.5 bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 mb-3.5">
           <div>
-            <div class="text-[10px] uppercase text-slate-400 dark:text-slate-400 font-semibold">Reading (AQI)</div>
-            <div class="text-2xl font-mono font-bold" style="color: ${colorInfo.bg}">${st.aqi}</div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Reading (AQI)</div>
+            <div class="text-2xl font-mono font-extrabold" style="color: ${colorInfo.bg}">${st.aqi}</div>
           </div>
           <div>
-            <div class="text-[10px] uppercase text-slate-400 dark:text-slate-400 font-semibold">PM2.5 Conc.</div>
-            <div class="text-lg font-mono font-bold text-slate-700 dark:text-slate-200">${st.pm25} <span class="text-[10px] font-normal text-slate-400">µg/m³</span></div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">PM2.5 Level</div>
+            <div class="text-lg font-mono font-extrabold text-slate-700 dark:text-slate-200">${st.pm25} <span class="text-[10px] font-normal text-slate-400">µg/m³</span></div>
           </div>
         </div>
 
-        <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-2">${st.description}</div>
-        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Updated: ${st.updatedAt} • Redis Cache TTL Active</div>
+        <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${st.description}</div>
+        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Updated: ${st.updatedAt}</div>
       </div>
     `;
 
@@ -469,82 +489,90 @@ function renderReportMarkers() {
   reportsMarkersLayer.clearLayers();
 
   const isDark = props.isDark;
-  const pinBorder = isDark ? 'border-slate-900' : 'border-white';
-  const badgeClass = isDark ? 'bg-slate-800 text-slate-100 border border-slate-700' : 'bg-slate-900 text-white';
+  const cardBg = isDark ? '#0f172a' : '#ffffff';
+  const cardText = isDark ? '#f8fafc' : '#0f172a';
+  const cardBorder = isDark ? '#334155' : '#cbd5e1';
 
   for (const rep of props.reports) {
-    const isHigh = rep.estimatedAqi >= 150;
-
     const iconHtml = `
       <div class="flex flex-col items-center cursor-pointer group">
-        <div class="w-9 h-9 rounded-full bg-orange-500 text-white border-3 ${pinBorder} shadow-md flex items-center justify-center font-bold text-xs ${isHigh ? 'animate-pulse' : ''}">
-          <span>🔥</span>
+        <div style="
+          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          color: #ffffff;
+          border: 3.5px solid ${isDark ? '#0f172a' : '#ffffff'};
+          box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.5);
+        " class="px-3.5 py-2 rounded-2xl font-mono font-black text-xs flex flex-col items-center leading-tight">
+          <span>${rep.estimatedAqi}</span>
+          <span class="text-[9px] font-bold tracking-wider opacity-90">AQI</span>
         </div>
-        <div class="${badgeClass} font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow mt-0.5 whitespace-nowrap">
-          ${rep.estimatedAqi} AQI
+        <div style="
+          background-color: ${cardBg};
+          color: ${cardText};
+          border: 1px solid ${cardBorder};
+        " class="text-[9px] font-bold px-2 py-0.5 rounded-md shadow-sm mt-1 whitespace-nowrap">
+          ${rep.areaName}
         </div>
       </div>
     `;
 
     const customIcon = L.divIcon({
       html: iconHtml,
-      className: 'custom-report-pin',
-      iconSize: [48, 48],
-      iconAnchor: [24, 18]
+      className: 'custom-report-badge-marker',
+      iconSize: [80, 50],
+      iconAnchor: [40, 24]
     });
 
     const marker = L.marker([rep.lat, rep.lng], { icon: customIcon });
 
     const symptomsHtml = (rep.symptoms || [])
-      .map(s => `<span class="inline-block px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 text-[10px] font-semibold mr-1 mb-1">${s}</span>`)
+      .map(s => `<span class="inline-block px-2.5 py-0.5 rounded-lg bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800/80 text-orange-800 dark:text-orange-200 text-[10px] font-bold mr-1 mb-1">${s}</span>`)
       .join('');
 
     const popupHtml = `
-      <div class="p-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-100 dark:border-slate-800 min-w-[280px]">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
-          <span class="text-[10px] uppercase font-bold tracking-wider text-orange-600 dark:text-orange-400">Ground Truth Report</span>
-          <span class="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-slate-600 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">Weight: ${rep.trustScore}x</span>
+      <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl min-w-[280px]">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
+          <span class="text-[10px] uppercase font-black tracking-widest text-orange-600 dark:text-orange-400">Ground Truth Report</span>
+          <span class="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-slate-600 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">Weight: ${rep.trustScore}x</span>
         </div>
 
-        <div class="text-base font-bold text-slate-800 dark:text-slate-100 mb-0.5">${rep.areaName}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3">By <span class="text-slate-800 dark:text-slate-200 font-medium">${rep.reporterName}</span> (${rep.reporterRole})</div>
+        <div class="text-base font-bold text-slate-900 dark:text-white mb-0.5">${rep.areaName}</div>
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3.5">By <span class="text-slate-800 dark:text-slate-200 font-semibold">${rep.reporterName}</span> (${rep.reporterRole})</div>
 
-        <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60 mb-3">
+        <div class="grid grid-cols-2 gap-2.5 bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/60 mb-3.5">
           <div>
-            <div class="text-[10px] uppercase text-slate-400 dark:text-slate-400 font-semibold">Visibility</div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Visibility</div>
             <div class="text-xs font-bold text-slate-800 dark:text-slate-200">${rep.visibilityLabel}</div>
           </div>
           <div>
-            <div class="text-[10px] uppercase text-slate-400 dark:text-slate-400 font-semibold">Burning Odor</div>
-            <div class="text-xs font-bold text-orange-700 dark:text-orange-400">${rep.smellLevel}</div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Burning Odor</div>
+            <div class="text-xs font-bold text-orange-600 dark:text-orange-400">${rep.smellLevel}</div>
           </div>
         </div>
 
-        <div class="text-xs text-slate-700 dark:text-slate-200 italic border-l-2 border-orange-500 pl-2.5 py-1 mb-3 bg-orange-50/50 dark:bg-orange-950/30 rounded-r">
+        <div class="text-xs text-slate-700 dark:text-slate-300 italic border-l-2 border-orange-500 pl-3 py-1.5 mb-3.5 bg-orange-50/40 dark:bg-orange-950/20 rounded-r-xl">
           "${rep.description}"
         </div>
 
-        <div class="mb-3">
-          <div class="text-[10px] uppercase text-slate-400 dark:text-slate-400 font-semibold mb-1">Reported Symptoms:</div>
-          <div class="flex flex-wrap">${symptomsHtml || '<span class="text-xs text-slate-400">None</span>'}</div>
+        <div class="mb-3.5">
+          <div class="text-[10px] uppercase text-slate-400 font-bold mb-1.5">Symptoms:</div>
+          <div class="flex flex-wrap">${symptomsHtml || '<span class="text-xs text-slate-400">None reported</span>'}</div>
         </div>
 
-        <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2 text-[11px] text-slate-400 dark:text-slate-400">
+        <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2.5 text-[11px] text-slate-400">
           <span>${rep.timestamp}</span>
-          <span class="text-orange-600 dark:text-orange-400 font-bold font-mono">Panic Index: ${rep.panicScore}%</span>
+          <span class="text-orange-600 dark:text-orange-400 font-bold font-mono">Panic: ${rep.panicScore}%</span>
         </div>
 
-        <div class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div class="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
-            class="btn-native-share-report flex items-center justify-center gap-2 w-full py-2 px-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer select-none"
+            class="btn-native-share-report flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-orange-500/20 transition-all cursor-pointer select-none active:scale-95"
             data-report-id="${rep.id}"
-            title="Generate air quality image and share"
           >
-            <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
             </svg>
-            <span>Share Air Quality Status</span>
+            <span>Share Air Quality Card</span>
           </button>
         </div>
       </div>
@@ -581,50 +609,48 @@ function renderAnomalyClusters() {
     if (!anomaly.isAnomaly) continue;
 
     const outerCircle = L.circle(anomaly.center, {
-      className: 'animate-haze-pulse',
       radius: anomaly.radiusMeters,
       color: '#ea580c',
       fillColor: '#f97316',
-      fillOpacity: isDark ? 0.28 : 0.22,
-      weight: 2.5,
-      dashArray: '5, 5'
+      fillOpacity: isDark ? 0.25 : 0.18,
+      weight: 2,
+      dashArray: '6, 6'
     });
 
     const innerCircle = L.circle(anomaly.center, {
-      className: 'animate-haze-pulse',
       radius: Math.max(Math.round(anomaly.radiusMeters * 0.45), 750),
       color: '#dc2626',
       fillColor: '#ef4444',
-      fillOpacity: isDark ? 0.45 : 0.35,
+      fillOpacity: isDark ? 0.40 : 0.30,
       weight: 2
     });
 
     const popupHtml = `
-      <div class="p-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl border border-orange-200 dark:border-orange-800/80 min-w-[280px]">
-        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2 mb-2 text-orange-600 dark:text-orange-400">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
-          <span class="text-xs font-bold uppercase tracking-wider">FastAPI DBSCAN Spike</span>
+      <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-orange-200 dark:border-orange-800/80 shadow-2xl min-w-[280px]">
+        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 text-orange-600 dark:text-orange-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+          <span class="text-xs font-black uppercase tracking-widest">DBSCAN Smoke Spike</span>
         </div>
-        <div class="text-base font-bold text-slate-800 dark:text-slate-100 mb-1">High-Risk Smoke Zone: ${anomaly.area}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3">${anomaly.reportCount} localized citizen reports confirm intense ground-level haze.</div>
+        <div class="text-base font-bold text-slate-900 dark:text-white mb-1">${anomaly.area}</div>
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-3.5">${anomaly.reportCount} localized citizen reports confirm heavy smoke concentrations.</div>
 
-        <div class="bg-orange-50/80 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/60 rounded-xl p-2.5 mb-3 space-y-1 text-xs">
+        <div class="bg-orange-50/80 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/60 rounded-2xl p-3 mb-3.5 space-y-1.5 text-xs">
           <div class="flex justify-between">
-            <span class="text-slate-500 dark:text-slate-400">Citizen Weighted AQI:</span>
-            <span class="font-mono font-bold text-orange-950 dark:text-orange-300">${anomaly.groundTruthAqi}</span>
+            <span class="text-slate-500">Citizen Weighted AQI:</span>
+            <span class="font-mono font-bold text-orange-900 dark:text-orange-300">${anomaly.groundTruthAqi}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500 dark:text-slate-400">Nearest Gov Station:</span>
-            <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400">${anomaly.nearestStation?.name} (${anomaly.nearestStation?.aqi || 'N/A'})</span>
+            <span class="text-slate-500">Nearest Gov Station:</span>
+            <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">${anomaly.nearestStation?.name} (${anomaly.nearestStation?.aqi || 'N/A'})</span>
           </div>
-          <div class="flex justify-between border-t border-orange-200/60 dark:border-orange-800/60 pt-1 font-semibold">
-            <span class="text-orange-900 dark:text-orange-300">Sensor Blindspot Discrepancy:</span>
-            <span class="font-mono text-red-600 dark:text-red-400 font-extrabold">+${anomaly.discrepancy} AQI</span>
+          <div class="flex justify-between border-t border-orange-200/60 dark:border-orange-800/60 pt-1.5 font-bold">
+            <span class="text-orange-900 dark:text-orange-300">Blindspot Discrepancy:</span>
+            <span class="font-mono text-red-600 dark:text-red-400">+${anomaly.discrepancy} AQI</span>
           </div>
         </div>
 
-        <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-          Algorithm: Epsilon = ${anomaly.parameters.epsKm}km, MinSamples = ${anomaly.parameters.minPts}, WeightThreshold = ${anomaly.parameters.weightThreshold}x
+        <div class="text-[10px] text-slate-400 font-mono">
+          Model: eps=${anomaly.parameters?.epsKm ?? 8}km, minPts=${anomaly.parameters?.minPts ?? 5}
         </div>
       </div>
     `;
@@ -636,12 +662,11 @@ function renderAnomalyClusters() {
       className: 'custom-anomaly-pin',
       html: `
         <div class="flex flex-col items-center pointer-events-none -translate-x-1/2 -translate-y-1/2">
-          <div class="w-14 h-14 rounded-full bg-red-500/25 border-2 border-red-500 animate-haze-pulse pointer-events-auto"></div>
-          <div class="relative -mt-9 px-2.5 py-0.5 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold shadow-md border border-slate-700 flex items-center gap-1.5 whitespace-nowrap pointer-events-auto">
-            <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"></span>
+          <div class="w-14 h-14 rounded-full bg-red-500/20 border-2 border-red-500 pointer-events-auto"></div>
+          <div class="relative -mt-9 px-3 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md text-white font-mono text-[10px] font-bold shadow-xl border border-slate-700 flex items-center gap-2 whitespace-nowrap pointer-events-auto">
             <span>SPIKE +${anomaly.discrepancy} AQI</span>
           </div>
-          <div style="background-color: ${areaBg}; color: ${areaText}; border: 1px solid ${areaBorder};" class="text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs mt-1 whitespace-nowrap pointer-events-auto">
+          <div style="background-color: ${areaBg}; color: ${areaText}; border: 1px solid ${areaBorder};" class="text-[9px] font-bold px-2 py-0.5 rounded-lg shadow-sm mt-1 whitespace-nowrap pointer-events-auto">
             ${anomaly.area}
           </div>
         </div>
@@ -661,15 +686,10 @@ function renderAnomalyClusters() {
 </script>
 
 <style scoped>
-:deep(.custom-report-pin) {
-  background: transparent;
-  border: none;
-}
-:deep(.custom-official-pin) {
-  background: transparent;
-  border: none;
-}
-:deep(.custom-anomaly-pin) {
+:deep(.custom-report-badge-marker),
+:deep(.custom-official-pin),
+:deep(.custom-anomaly-pin),
+:deep(.custom-search-highlight-pin) {
   background: transparent;
   border: none;
 }
