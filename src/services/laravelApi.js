@@ -1,5 +1,5 @@
 /**
- * Laravel API Service Emulation
+ * Laravel API Service Emulation & Live Backend Connector
  * Acts as the core backend layer:
  * - Manages user accounts & weighted credibility scoring
  * - Stores historical report data
@@ -12,6 +12,9 @@ import { OFFICIAL_STATIONS } from '../data/officialStations.js';
 import { INITIAL_REPORTS, TRUSTED_USERS } from '../data/initialReports.js';
 import { redis } from './redisStore.js';
 import { fastapi } from './fastapiEngine.js';
+
+// Base URL configuration for Render backend vs Localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 class LaravelApiService {
   constructor() {
@@ -70,19 +73,43 @@ class LaravelApiService {
     }
 
     if (!stations) {
-      // Simulate external government API call (DOE APIMS / NEA / BMKG)
-      stations = [...this.stations];
+      // Option to fetch live from Render backend, falling back to mock state
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/stations`);
+        if (response.ok) {
+          stations = await response.json();
+        }
+      } catch (err) {
+        console.warn('Backend fetch failed, using fallback stations:', err);
+      }
+
+      if (!stations) {
+        stations = [...this.stations];
+      }
+
       redis.setEx('haze:official:stations', 3600, stations);
     }
 
     const elapsed = performance.now() - start;
-    this.log('/api/v1/stations', 'GET', 200, elapsed + 1.4, `Retrieved ${stations.length} official stations from Redis cache`);
+    this.log('/api/v1/stations', 'GET', 200, elapsed + 1.4, `Retrieved ${stations.length} official stations`);
     return stations;
   }
 
   // GET /api/v1/reports
   async getReports() {
     const start = performance.now();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/reports`);
+      if (response.ok) {
+        const remoteReports = await response.json();
+        if (Array.isArray(remoteReports) && remoteReports.length > 0) {
+          this.reports = remoteReports;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend fetch reports failed, using local collection state:', err);
+    }
+
     const elapsed = performance.now() - start;
     this.log('/api/v1/reports', 'GET', 200, elapsed + 1.2, `Retrieved ${this.reports.length} crowdsourced ground truth reports`);
     return [...this.reports];
@@ -154,7 +181,20 @@ class LaravelApiService {
       sentimentAnalysis: sentiment
     };
 
-    // Store in Laravel Eloquent memory collection
+    // Attempt to sync with Render FastAPI/Laravel backend endpoint via POST
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/reports`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newReport),
+      });
+    } catch (err) {
+      console.warn('Backend sync failed, storing locally:', err);
+    }
+
+    // Store in memory collection
     this.reports.unshift(newReport);
 
     // Push into Redis Geospatial Index immediately
@@ -179,10 +219,17 @@ class LaravelApiService {
   }
 
   // Upvote report
-  upvoteReport(id) {
+  async upvoteReport(id) {
     const rep = this.reports.find(r => r.id === id);
     if (rep) {
       rep.upvotes++;
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/reports/${id}/upvote`, {
+          method: 'POST'
+        });
+      } catch (err) {
+        console.warn('Backend upvote sync failed:', err);
+      }
       this.log(`/api/v1/reports/${id}/upvote`, 'POST', 200, 1.0, `Report upvoted. Current votes: ${rep.upvotes}`);
     }
   }
