@@ -199,6 +199,15 @@ const activeAnomalyCount = computed(() => {
   return anomalyClusters.value.filter(a => a.isAnomaly).length;
 });
 
+const handleKeydown = (e) => {
+  if ((e.key === 'r' || e.key === 'R') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) {
+    if (!isReportModalOpen.value && !isPickingLocation.value) {
+      e.preventDefault();
+      openReportModal();
+    }
+  }
+};
+
 onMounted(async () => {
   initTheme();
 
@@ -211,18 +220,11 @@ onMounted(async () => {
   reports.value = await laravel.getReports();
   anomalyClusters.value = laravel.computeAnomalies();
 
-  const handleKeydown = (e) => {
-    if ((e.key === 'r' || e.key === 'R') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) {
-      if (!isReportModalOpen.value && !isPickingLocation.value) {
-        e.preventDefault();
-        openReportModal();
-      }
-    }
-  };
   window.addEventListener('keydown', handleKeydown);
-  onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown);
-  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 function toggleRightPanel(tab) {
