@@ -18,7 +18,7 @@
 
     <div class="p-5 space-y-6">
       
-      <!-- Primary Active Anomaly Cards (from Design HTML) -->
+      <!-- Primary Active Anomaly Cards -->
       <div v-if="activeAnomalies.length > 0" class="space-y-3">
         <div
           v-for="cluster in activeAnomalies"
@@ -26,18 +26,18 @@
           class="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 rounded-2xl p-4 shadow-xs"
         >
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ cluster.area }} Sector</span>
+            <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ cluster.title || 'Cluster Sector' }}</span>
             <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-bold rounded-full uppercase tracking-wider">ACTIVE</span>
           </div>
           <div class="text-3xl font-black text-blue-900 dark:text-blue-200 mb-1 font-mono tracking-tight">
             +{{ cluster.discrepancy }} AQI
           </div>
           <p class="text-xs text-blue-700 dark:text-blue-300 leading-snug">
-            {{ cluster.reportCount }} citizen reports indicate a localized smoke spike missed by {{ cluster.nearestStation?.name }} ({{ cluster.nearestStation?.distanceKm }}km away).
+            {{ cluster.count }} citizen reports indicate a localized smoke spike (Avg AQI {{ cluster.avgAqi }}) detected via DBSCAN.
           </p>
           <div class="mt-3 pt-2.5 border-t border-blue-100 dark:border-blue-900/60 flex items-center justify-between text-[11px] text-blue-800 dark:text-blue-300 font-mono">
-            <span>Ground: <strong>{{ cluster.groundTruthAqi }} AQI</strong></span>
-            <span>Station: <strong>{{ cluster.nearestStation?.aqi }} AQI</strong></span>
+            <span>Cluster Density: <strong>{{ cluster.density }} pts</strong></span>
+            <span>Radius: <strong>{{ cluster.radiusKm }} km</strong></span>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@
         No active localized spikes detected under current DBSCAN threshold.
       </div>
 
-      <!-- Official vs Crowdsource Comparison Bars (from Design HTML) -->
+      <!-- Official vs Crowdsource Comparison Bars -->
       <div>
         <h2 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-4">Official vs Crowdsource</h2>
         <div class="space-y-4">
@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <!-- Panic Index Gauge (from Design HTML) -->
+      <!-- Panic Index Gauge -->
       <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
         <h2 class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-4 text-center">Panic Index</h2>
         <div class="relative w-36 h-20 mx-auto">

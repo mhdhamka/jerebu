@@ -1,6 +1,0 @@
-{
-  "name": "Jerebu Watch",
-  "description": "Crowdsourced Southeast Asia air quality and haze tracker with ground truth reports, official AQI stations, Redis geospatial indexing, and DBSCAN anomaly detection.",
-  "requestFramePermissions": ["geolocation"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

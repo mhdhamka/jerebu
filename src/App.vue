@@ -23,8 +23,8 @@
       <!-- Left Sidebar: Live Community Feed Drawer -->
       <aside
         :class="[
-          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full border-r border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl',
-          isLeftFeedVisible ? 'w-full sm:w-88 absolute lg:relative left-0 top-0 shadow-2xl lg:shadow-none' : 'w-0 hidden'
+          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden',
+          isLeftFeedVisible ? 'w-full sm:w-88 border-r border-slate-200/80 dark:border-slate-800/80' : 'w-0 border-r-0'
         ]"
       >
         <ReportFeed
@@ -94,18 +94,14 @@
 
       <!-- Right Sidebar: DBSCAN Anomaly Engine Console -->
       <aside
-        :class="[
-          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full border-l border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl',
-          isRightPanelOpen ? 'w-full sm:w-88 absolute lg:relative right-0 top-0 shadow-2xl lg:shadow-none' : 'w-0 hidden'
-        ]"
+        v-if="isRightPanelOpen && activeRightTab === 'dbscan'"
+        class="transition-all duration-300 ease-in-out z-30 shrink-0 h-full border-l border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl w-full sm:w-88 absolute lg:relative right-0 top-0 shadow-2xl lg:shadow-none"
       >
         <DBSCANAnomalyPanel
-          v-if="activeRightTab === 'dbscan'"
           :anomalies="anomalyClusters"
-          @close="activeRightTab = null; isRightPanelOpen = false;"
+          @close="isRightPanelOpen = false; activeRightTab = null"
           @recalculate-dbscan="handleRecalculateDBSCAN"
         />
-
       </aside>
     </main>
 
@@ -156,10 +152,10 @@ const officialStations = ref([]);
 const reports = ref([]);
 const anomalyClusters = ref([]);
 
-// Visibility of 3-column workstation
-const isLeftFeedVisible = ref(true);
-const isRightPanelOpen = ref(true);
-const activeRightTab = ref('dbscan'); // 'dbscan' or 'console'
+// Default closed state on boot for both sidebars
+const isLeftFeedVisible = ref(false); 
+const isRightPanelOpen = ref(false); 
+const activeRightTab = ref(null); 
 
 const isReportModalOpen = ref(false);
 const sharingReport = ref(null);
@@ -211,11 +207,6 @@ const handleKeydown = (e) => {
 onMounted(async () => {
   initTheme();
 
-  if (window.innerWidth < 1024) {
-    isLeftFeedVisible.value = false;
-    isRightPanelOpen.value = false;
-  }
-
   officialStations.value = await laravel.getOfficialStations();
   reports.value = await laravel.getReports();
   anomalyClusters.value = laravel.computeAnomalies();
@@ -230,6 +221,7 @@ onUnmounted(() => {
 function toggleRightPanel(tab) {
   if (isRightPanelOpen.value && activeRightTab.value === tab) {
     isRightPanelOpen.value = false;
+    activeRightTab.value = null;
   } else {
     activeRightTab.value = tab;
     isRightPanelOpen.value = true;
