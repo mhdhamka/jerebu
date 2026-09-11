@@ -60,10 +60,9 @@
     </div>
 
     <!-- Modern Glassmorphism Map Legend Card -->
-    <div class="absolute bottom-6 right-4 sm:right-6 z-[400] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800/80 w-52 text-xs hidden sm:block transition-all duration-300">
+    <div class="absolute bottom-28 sm:bottom-28 right-4 sm:right-6 z-[400] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800/80 w-52 text-xs hidden sm:block transition-all duration-300">
       <h3 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center justify-between">
         <span>Air Quality Scale</span>
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
       </h3>
       <div class="space-y-2">
         <div class="flex items-center justify-between text-slate-700 dark:text-slate-200 font-medium">
@@ -159,17 +158,14 @@ function flyToRegion(region) {
   }
 }
 
-function setTileLayer(isDark) {
+function setTileLayer() {
   if (!map) return;
   if (tileLayerInstance) {
     map.removeLayer(tileLayerInstance);
   }
   
-  const tileUrl = isDark
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-  tileLayerInstance = L.tileLayer(tileUrl, {
+  // Both dark and light mode use standard OpenStreetMap tiles
+  tileLayerInstance = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   }).addTo(map);
@@ -209,8 +205,7 @@ onUnmounted(() => {
 watch(() => props.officialStations, () => renderOfficialMarkers(), { deep: true });
 watch(() => props.reports, () => renderReportMarkers(), { deep: true });
 watch(() => props.anomalyClusters, () => renderAnomalyClusters(), { deep: true });
-watch(() => props.isDark, (newVal) => {
-  setTileLayer(newVal);
+watch(() => props.isDark, () => {
   renderAllLayers();
 });
 
@@ -228,7 +223,7 @@ function initMap() {
 
   L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-  setTileLayer(props.isDark);
+  setTileLayer();
 
   officialMarkersLayer = L.layerGroup().addTo(map);
   reportsMarkersLayer = L.layerGroup().addTo(map);
@@ -379,7 +374,7 @@ function handleLocationSelected(loc) {
           data-loc-lat="${loc.lat}"
           data-loc-lng="${loc.lng}"
         >
-          📝 Report Haze Here
+          Report Haze Here
         </button>
         <button
           type="button"

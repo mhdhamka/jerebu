@@ -3,14 +3,14 @@
     <!-- Main Search Bar Input Box -->
     <div
       :class="[
-        'flex items-center gap-2 px-3.5 py-2.5 rounded-2xl border shadow-lg backdrop-blur-md transition-all duration-200',
+        'flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border shadow-xl backdrop-blur-xl transition-all duration-300',
         isFocused
-          ? 'bg-white dark:bg-slate-900 border-orange-500 dark:border-orange-500 ring-2 ring-orange-500/20 shadow-orange-500/10'
-          : 'bg-white/95 dark:bg-slate-900/95 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+          ? 'bg-white dark:bg-slate-900 border-orange-500 dark:border-orange-500 ring-4 ring-orange-500/10 shadow-orange-500/5'
+          : 'bg-white/95 dark:bg-slate-900/95 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
       ]"
     >
       <!-- Search Icon -->
-      <div class="text-slate-400 dark:text-slate-400 shrink-0 flex items-center justify-center">
+      <div class="text-slate-400 dark:text-slate-500 shrink-0 flex items-center justify-center transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -43,10 +43,10 @@
         </svg>
       </button>
 
-      <!-- Keyboard Shortcut Hint (Desktop only) -->
+      <!-- Keyboard Shortcut Hint -->
       <span
         v-if="!query && !isFocused"
-        class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700"
+        class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/80 shadow-2xs"
       >
         /
       </span>
@@ -54,7 +54,7 @@
       <!-- Divider -->
       <div class="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 shrink-0"></div>
 
-      <!-- GPS Geolocation "Locate Me" Button -->
+      <!-- GPS Geolocation Button -->
       <button
         type="button"
         @click="locateDeviceGPS"
@@ -78,24 +78,49 @@
     <!-- Dropdown Results Container -->
     <div
       v-if="isDropdownOpen"
-      class="absolute left-0 right-0 top-full mt-2 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[500] max-h-[75vh] flex flex-col transition-all duration-200"
+      class="absolute left-0 right-0 top-full mt-2.5 bg-white/98 dark:bg-slate-900/98 backdrop-blur-2xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden z-[500] max-h-[75vh] flex flex-col transition-all duration-300 animate-in fade-in slide-in-from-top-2"
     >
-      <!-- Quick Division Jump Bar (Always visible at top of dropdown) -->
-      <div class="p-2.5 bg-slate-50/90 dark:bg-slate-850/80 border-b border-slate-100 dark:border-slate-800 shrink-0">
+      <!-- Quick Division Jump Bar with Left/Right Scroll Toggles -->
+      <div class="p-2.5 bg-slate-50/80 dark:bg-slate-850/60 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
         <div class="flex items-center justify-between mb-1.5 px-1">
-          <span class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 dark:text-slate-400 flex items-center gap-1">
-            <span>🗺️</span>
-            <span>Sarawak Administrative Divisions</span>
+          <span class="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 dark:text-slate-500">
+            Sarawak Administrative Divisions
           </span>
-          <span class="text-[10px] font-mono text-slate-400">12 Divisions</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500 mr-1">12 Divisions</span>
+            <!-- Left Scroll Button -->
+            <button
+              type="button"
+              @click="scrollDivisions(-1)"
+              class="w-5 h-5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:border-orange-500 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 transition-all cursor-pointer shadow-2xs"
+              title="Scroll Left"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <!-- Right Scroll Button -->
+            <button
+              type="button"
+              @click="scrollDivisions(1)"
+              class="w-5 h-5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:border-orange-500 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 transition-all cursor-pointer shadow-2xs"
+              title="Scroll Right"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        
+        <!-- Scrollable Divisions Container -->
+        <div ref="divsScrollContainerRef" class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none scroll-smooth">
           <button
             v-for="div in divisions"
             :key="div.id"
             @click="selectDivision(div)"
             type="button"
-            class="px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 hover:border-orange-500 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 hover:shadow-xs shrink-0"
+            class="px-2.5 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 hover:border-orange-500 hover:text-orange-600 dark:hover:border-orange-500 dark:hover:text-orange-400 shadow-2xs shrink-0"
           >
             {{ div.flagName }}
           </button>
@@ -103,7 +128,7 @@
       </div>
 
       <!-- Results List -->
-      <div class="overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80 flex-1">
+      <div class="overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 flex-1">
         <!-- Device GPS Quick Action Row -->
         <button
           type="button"
@@ -132,7 +157,7 @@
         </button>
 
         <!-- Loading State for Online Geocode -->
-        <div v-if="isGeocodingOnline" class="p-3 text-center text-xs text-slate-400 dark:text-slate-400 flex items-center justify-center gap-2">
+        <div v-if="isGeocodingOnline" class="p-3 text-center text-xs text-slate-400 dark:text-slate-500 flex items-center justify-center gap-2">
           <span class="w-3.5 h-3.5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></span>
           <span>Searching OpenStreetMap Sarawak geospatial database...</span>
         </div>
@@ -146,16 +171,13 @@
             :class="[
               'px-3.5 py-2.5 flex items-center justify-between cursor-pointer transition-colors',
               highlightedIndex === index
-                ? 'bg-orange-50/80 dark:bg-orange-950/40 border-l-3 border-orange-500'
+                ? 'bg-orange-50/90 dark:bg-orange-950/40 border-l-3 border-orange-500'
                 : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
             ]"
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <!-- Location Type Icon -->
-              <div
-                class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-xs"
-                :class="getTypeBadgeClass(item.type)"
-              >
+              <div class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-xs shadow-2xs" :class="getTypeBadgeClass(item.type)">
                 <span>{{ getTypeIcon(item.type) }}</span>
               </div>
 
@@ -170,7 +192,7 @@
                     OSM
                   </span>
                 </div>
-                <div class="text-[10px] text-slate-400 dark:text-slate-400 truncate flex items-center gap-2 mt-0.5">
+                <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate flex items-center gap-2 mt-0.5">
                   <span class="font-medium text-slate-500 dark:text-slate-400">{{ item.division }}</span>
                   <span class="text-slate-300 dark:text-slate-700">•</span>
                   <span class="font-mono text-[9px]">{{ item.lat.toFixed(3) }}°, {{ item.lng.toFixed(3) }}°</span>
@@ -180,9 +202,7 @@
 
             <!-- Type Pill -->
             <div class="shrink-0 ml-2">
-              <span
-                class="text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800"
-              >
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
                 {{ formatType(item.type) }}
               </span>
             </div>
@@ -190,20 +210,17 @@
         </template>
 
         <!-- No Results Fallback -->
-        <div
-          v-else-if="query && !isGeocodingOnline"
-          class="p-6 text-center text-slate-500 dark:text-slate-400"
-        >
+        <div v-else-if="query && !isGeocodingOnline" class="p-6 text-center text-slate-500 dark:text-slate-400">
           <div class="text-2xl mb-1">📍</div>
           <div class="text-xs font-bold text-slate-700 dark:text-slate-200">No exact match found for "{{ query }}" in Sarawak</div>
-          <div class="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
-            Try searching for a major town (e.g. Sibu, Bintulu, Miri, Sri Aman, Sarikei) or click one of the 12 division chips above.
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 max-w-xs mx-auto">
+            Try searching for a major town (e.g. Sibu, Bintulu, Miri) or select a division chip above.
           </div>
         </div>
 
-        <!-- Default Recent / Suggested Neighborhoods when input is blank -->
+        <!-- Featured Locations when blank -->
         <div v-if="!query && searchResults.length === 0" class="p-3">
-          <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 tracking-wider mb-2 px-1">
+          <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-2 px-1">
             Featured Sarawak Cities & Neighborhoods
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -212,12 +229,12 @@
               :key="featured.name"
               type="button"
               @click="selectLocation(featured)"
-              class="p-2 rounded-xl text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:border-orange-300 dark:hover:border-orange-700 border border-slate-200/60 dark:border-slate-700/60 transition-all cursor-pointer group"
+              class="p-2 rounded-xl text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:border-orange-300 dark:hover:border-orange-700/80 border border-slate-200/60 dark:border-slate-700/60 transition-all cursor-pointer group shadow-2xs"
             >
               <div class="text-[11px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 truncate">
                 {{ featured.name }}
               </div>
-              <div class="text-[9px] text-slate-400 dark:text-slate-400 truncate mt-0.5">
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
                 {{ featured.division }}
               </div>
             </button>
@@ -226,11 +243,8 @@
       </div>
 
       <!-- Dropdown Footer -->
-      <div class="px-3.5 py-2 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 dark:text-slate-400 flex items-center justify-between shrink-0">
-        <span class="flex items-center gap-1.5">
-          <span>⚡</span>
-          <span>Coverage across all 12 Sarawak Divisions</span>
-        </span>
+      <div class="px-3.5 py-2 bg-slate-50 dark:bg-slate-850/80 border-t border-slate-100 dark:border-slate-800/80 text-[10px] text-slate-400 dark:text-slate-500 flex items-center justify-between shrink-0">
+        <span>Coverage across all 12 Sarawak Divisions</span>
         <span class="hidden sm:inline font-mono">Use ↑↓ to navigate • Enter to select</span>
       </div>
     </div>
@@ -257,18 +271,16 @@ const highlightedIndex = ref(0);
 
 const searchContainerRef = ref(null);
 const inputRef = ref(null);
+const divsScrollContainerRef = ref(null);
 
 const divisions = SARAWAK_DIVISIONS;
 
-// Curated selection of 6 famous landmark neighborhoods across Sarawak for blank state
 const featuredLocations = computed(() => {
   const targets = ['Senadin', 'Petra Jaya', 'Sibu Jaya', 'Tanjung Kidurong & Deepwater Port', 'Kota Samarahan', 'Sri Aman Town (Simanggang)'];
   return SARAWAK_LOCATIONS.filter(loc => targets.includes(loc.name));
 });
 
-// Search results combining local Sarawak database and debounced Nominatim OpenStreetMap
 const searchResults = ref([]);
-
 let debounceTimer = null;
 
 async function performSearch(val) {
@@ -278,20 +290,16 @@ async function performSearch(val) {
     return;
   }
 
-  // 1. Local fast search
   const localMatches = searchSarawakLocations(val, 8);
   searchResults.value = localMatches;
   highlightedIndex.value = 0;
 
-  // 2. If fewer than 4 matches or user typed > 3 characters, supplement with Nominatim OpenStreetMap
   if (val.trim().length >= 3) {
     isGeocodingOnline.value = true;
     try {
       const onlineMatches = await geocodeSarawakNominatim(val);
-      // Deduplicate by name similarity
       const existingNames = new Set(localMatches.map(m => m.name.toLowerCase()));
       const uniqueOnline = onlineMatches.filter(m => !existingNames.has(m.name.toLowerCase()));
-      
       searchResults.value = [...localMatches, ...uniqueOnline].slice(0, 10);
     } catch (err) {
       console.warn('Geocoding error:', err);
@@ -338,6 +346,18 @@ function selectDivision(div) {
   closeDropdown();
 }
 
+/**
+ * Scroll divisions left or right when arrow buttons are clicked
+ */
+function scrollDivisions(direction) {
+  if (divsScrollContainerRef.value) {
+    divsScrollContainerRef.value.scrollBy({
+      left: direction * 180,
+      behavior: 'smooth'
+    });
+  }
+}
+
 function selectLocation(loc) {
   emit('select-location', {
     name: loc.name,
@@ -356,7 +376,6 @@ function selectHighlighted() {
   if (searchResults.value.length > 0 && highlightedIndex.value >= 0 && highlightedIndex.value < searchResults.value.length) {
     selectLocation(searchResults.value[highlightedIndex.value]);
   } else if (query.value.trim().length > 0) {
-    // If user hit enter directly on query, try first result
     performSearch(query.value);
   }
 }
@@ -368,13 +387,9 @@ function navigateResults(direction) {
   }
   const total = searchResults.value.length;
   if (total === 0) return;
-
   highlightedIndex.value = (highlightedIndex.value + direction + total) % total;
 }
 
-/**
- * Geolocation API: Use Device GPS to center map
- */
 function locateDeviceGPS() {
   if (!navigator.geolocation) {
     emit('toast', 'Geolocation is not supported by your browser.');
@@ -389,7 +404,6 @@ function locateDeviceGPS() {
       const lat = parseFloat(position.coords.latitude.toFixed(5));
       const lng = parseFloat(position.coords.longitude.toFixed(5));
 
-      // Determine if within Sarawak coordinates bounds (lat ~0.8 to 5.0, lng ~109.5 to 115.8)
       const inSarawak = lat >= 0.8 && lat <= 5.0 && lng >= 109.5 && lng <= 115.8;
       const locationLabel = inSarawak ? 'Current GPS Location (Sarawak)' : 'Current Device GPS Location';
 
@@ -415,22 +429,16 @@ function locateDeviceGPS() {
       else if (err.code === 3) msg = 'Location request timed out.';
       emit('toast', msg);
     },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 30000
-    }
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
   );
 }
 
-// Click outside listener to collapse dropdown cleanly
 function handleClickOutside(e) {
   if (searchContainerRef.value && !searchContainerRef.value.contains(e.target)) {
     closeDropdown();
   }
 }
 
-// Keyboard shortcut '/' to focus search bar
 function handleGlobalKeydown(e) {
   if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) {
     e.preventDefault();
@@ -465,20 +473,13 @@ function getTypeIcon(type) {
 
 function getTypeBadgeClass(type) {
   switch (type) {
-    case 'city':
-      return 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300';
-    case 'neighborhood':
-      return 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300';
-    case 'town':
-      return 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300';
-    case 'landmark':
-      return 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300';
-    case 'industrial':
-      return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
-    case 'online_geocode':
-      return 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300';
-    default:
-      return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+    case 'city': return 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300';
+    case 'neighborhood': return 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300';
+    case 'town': return 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300';
+    case 'landmark': return 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300';
+    case 'industrial': return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+    case 'online_geocode': return 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300';
+    default: return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
   }
 }
 

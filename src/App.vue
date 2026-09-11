@@ -92,7 +92,7 @@
         </div>
       </section>
 
-      <!-- Right Sidebar: DBSCAN Anomaly Engine & Architecture Console -->
+      <!-- Right Sidebar: DBSCAN Anomaly Engine Console -->
       <aside
         :class="[
           'transition-all duration-300 ease-in-out z-30 shrink-0 h-full border-l border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl',
@@ -106,14 +106,6 @@
           @recalculate-dbscan="handleRecalculateDBSCAN"
         />
 
-        <ArchitectureConsole
-          v-else-if="activeRightTab === 'console'"
-          :redis-logs="redis.logs"
-          :redis-stats="redis.stats"
-          :laravel-logs="laravel.logs"
-          :fastapi-logs="fastapi.logs"
-          @close="isRightPanelOpen = false"
-        />
       </aside>
     </main>
 
@@ -154,7 +146,6 @@ import HazeMap from './components/HazeMap.vue';
 import ReportModal from './components/ReportModal.vue';
 import SocialShareModal from './components/SocialShareModal.vue';
 import DBSCANAnomalyPanel from './components/DBSCANAnomalyPanel.vue';
-import ArchitectureConsole from './components/ArchitectureConsole.vue';
 import ReportFeed from './components/ReportFeed.vue';
 
 import { laravel } from './services/laravelApi.js';

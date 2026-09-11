@@ -88,7 +88,7 @@
               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-500 cursor-pointer"
             >
               <option v-for="user in trustedUsers" :key="user.id" :value="user.id">
-                👤 {{ user.name }} (Trust Weight: {{ user.trustWeight }}x)
+                {{ user.name }} (Trust Weight: {{ user.trustWeight }}x)
               </option>
             </select>
           </div>
@@ -126,7 +126,7 @@
             <button
               @click="$emit('toggle-dbscan')"
               :class="[
-                'px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer',
+                'px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer col-span-2',
                 isDbscanOpen
                   ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                   : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-blue-400'
@@ -134,22 +134,6 @@
             >
               <span class="w-2 h-2 rounded-full" :class="isDbscanOpen ? 'bg-white' : 'bg-blue-500'"></span>
               <span>Anomalies</span>
-            </button>
-
-            <!-- Stack Architecture Console Button -->
-            <button
-              @click="$emit('toggle-console')"
-              :class="[
-                'px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border transition-all cursor-pointer',
-                isConsoleOpen
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-orange-400'
-              ]"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-              </svg>
-              <span>Tech Stack</span>
             </button>
           </div>
 
@@ -180,13 +164,11 @@ const props = defineProps({
   anomalyCount: { type: Number, default: 0 },
   activeUser: { type: Object, required: true },
   isDbscanOpen: { type: Boolean, default: false },
-  isConsoleOpen: { type: Boolean, default: false },
   isDark: { type: Boolean, default: false }
 });
 
 const emit = defineEmits([
   'toggle-dbscan',
-  'toggle-console',
   'open-report-modal',
   'open-export-modal',
   'switch-user',
