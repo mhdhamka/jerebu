@@ -8,51 +8,46 @@ export function getAqiTheme(aqi) {
     return {
       name: 'Good',
       accentColor: '#10b981',
-      glowColor: 'rgba(16, 185, 129, 0.25)',
-      badgeBg: 'rgba(16, 185, 129, 0.15)',
-      badgeBorder: 'rgba(16, 185, 129, 0.5)',
-      textAccent: '#34d399',
-      emoji: '🌿'
+      glowColor: 'rgba(16, 185, 129, 0.22)',
+      badgeBg: 'rgba(16, 185, 129, 0.12)',
+      badgeBorder: 'rgba(16, 185, 129, 0.4)',
+      textAccent: '#34d399'
     };
   } else if (aqi <= 100) {
     return {
       name: 'Moderate',
       accentColor: '#f59e0b',
-      glowColor: 'rgba(245, 158, 11, 0.25)',
-      badgeBg: 'rgba(245, 158, 11, 0.15)',
-      badgeBorder: 'rgba(245, 158, 11, 0.5)',
-      textAccent: '#fbbf24',
-      emoji: '⛅'
+      glowColor: 'rgba(245, 158, 11, 0.22)',
+      badgeBg: 'rgba(245, 158, 11, 0.12)',
+      badgeBorder: 'rgba(245, 158, 11, 0.4)',
+      textAccent: '#fbbf24'
     };
   } else if (aqi <= 200) {
     return {
       name: 'Unhealthy',
       accentColor: '#f97316',
-      glowColor: 'rgba(249, 115, 22, 0.28)',
-      badgeBg: 'rgba(249, 115, 22, 0.18)',
-      badgeBorder: 'rgba(249, 115, 22, 0.6)',
-      textAccent: '#fb923c',
-      emoji: '⚠️'
+      glowColor: 'rgba(249, 115, 22, 0.25)',
+      badgeBg: 'rgba(249, 115, 22, 0.15)',
+      badgeBorder: 'rgba(249, 115, 22, 0.5)',
+      textAccent: '#fb923c'
     };
   } else if (aqi <= 300) {
     return {
       name: 'Very Unhealthy',
       accentColor: '#f43f5e',
-      glowColor: 'rgba(244, 63, 94, 0.32)',
-      badgeBg: 'rgba(244, 63, 94, 0.2)',
-      badgeBorder: 'rgba(244, 63, 94, 0.7)',
-      textAccent: '#fb7185',
-      emoji: '🛑'
+      glowColor: 'rgba(244, 63, 94, 0.28)',
+      badgeBg: 'rgba(244, 63, 94, 0.16)',
+      badgeBorder: 'rgba(244, 63, 94, 0.6)',
+      textAccent: '#fb7185'
     };
   } else {
     return {
       name: 'Hazardous',
       accentColor: '#a855f7',
-      glowColor: 'rgba(168, 85, 247, 0.35)',
-      badgeBg: 'rgba(168, 85, 247, 0.2)',
-      badgeBorder: 'rgba(168, 85, 247, 0.7)',
-      textAccent: '#c084fc',
-      emoji: '☣️'
+      glowColor: 'rgba(168, 85, 247, 0.3)',
+      badgeBg: 'rgba(168, 85, 247, 0.16)',
+      badgeBorder: 'rgba(168, 85, 247, 0.6)',
+      textAccent: '#c084fc'
     };
   }
 }
@@ -73,223 +68,221 @@ export async function generateReportImage(report) {
 
   const theme = getAqiTheme(report.estimatedAqi || 150);
 
-  // 1. Background base: Deep dark slate gradient
+  // 1. Background base: Deep immersive dark slate gradient
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, '#090d16');
-  bgGrad.addColorStop(0.5, '#0f172a');
-  bgGrad.addColorStop(1, '#1e293b');
+  bgGrad.addColorStop(0, '#060911');
+  bgGrad.addColorStop(0.5, '#0b1120');
+  bgGrad.addColorStop(1, '#0f172a');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Atmospheric Haze Glow (Radial Gradient)
-  const glow = ctx.createRadialGradient(width * 0.82, height * 0.28, 50, width * 0.8, height * 0.3, 480);
+  // 2. Atmospheric Ambient Glows
+  const glow = ctx.createRadialGradient(width * 0.85, height * 0.22, 40, width * 0.8, height * 0.25, 520);
   glow.addColorStop(0, theme.glowColor);
   glow.addColorStop(1, 'transparent');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, width, height);
 
-  const glow2 = ctx.createRadialGradient(width * 0.15, height * 0.85, 40, width * 0.2, height * 0.8, 380);
-  glow2.addColorStop(0, 'rgba(234, 88, 12, 0.15)');
+  const glow2 = ctx.createRadialGradient(width * 0.12, height * 0.88, 30, width * 0.15, height * 0.85, 420);
+  glow2.addColorStop(0, 'rgba(249, 115, 22, 0.12)');
   glow2.addColorStop(1, 'transparent');
   ctx.fillStyle = glow2;
   ctx.fillRect(0, 0, width, height);
 
-  // 3. Card Frame / Border
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-  ctx.lineWidth = 1.5;
+  // 3. Outer Container Card Frame
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(32, 32, width - 64, height - 64, 28);
+    ctx.roundRect(28, 28, width - 56, height - 56, 24);
     ctx.stroke();
   }
 
-  // Accent Line at top of frame
+  // Top Dynamic Theme Accent Border
   ctx.save();
   ctx.strokeStyle = theme.accentColor;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(64, 32, width - 128, 4, 2);
+    ctx.roundRect(56, 28, width - 112, 3, 1.5);
   } else {
-    ctx.moveTo(64, 32);
-    ctx.lineTo(width - 64, 32);
+    ctx.moveTo(56, 28);
+    ctx.lineTo(width - 56, 28);
   }
   ctx.stroke();
   ctx.restore();
 
   // 4. Header Bar
-  // Logo & App Name
   ctx.fillStyle = '#f97316';
-  ctx.font = '900 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('JEREBU-WATCH', 64, 86);
+  ctx.font = '800 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('JEREBU', 56, 78);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('•   AIR QUALITY GROUND TRUTH ALERT', 200, 86);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('/   GROUND TRUTH INTELLIGENCE', 114, 78);
 
-  // Timestamp & Live Pill on Right
+  // Live Timestamp Pill
   const timeText = report.timestamp || 'Live Report';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.lineWidth = 1;
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(width - 320, 64, 256, 32, 16);
+    ctx.roundRect(width - 264, 58, 208, 28, 14);
     ctx.fill();
+    ctx.stroke();
   }
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(`🕒 ${timeText}`, width - 304, 85);
+  ctx.font = '500 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText(timeText, width - 246, 76);
 
-  // 5. Main Location Title
+  // 5. Main Location Title & Metadata
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.font = '800 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   const areaName = report.areaName || 'Location Not Specified';
-  ctx.fillText(areaName, 64, 150);
+  ctx.fillText(areaName, 56, 138);
 
-  // Subtitle / Coordinates & Region
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#64748b';
+  ctx.font = '500 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   const latLngStr = report.lat && report.lng ? `(${Number(report.lat).toFixed(4)}° N, ${Number(report.lng).toFixed(4)}° E)` : '';
-  ctx.fillText(`📍 ${report.region || report.city || 'Southeast Asia'} ${latLngStr}  •  DBSCAN Spatial Cluster Verified`, 64, 180);
+  ctx.fillText(`${report.region || report.city || 'Southeast Asia'}   ${latLngStr}   •   DBSCAN Cluster Verified`, 56, 166);
 
-  // 6. Hero AQI Badge Box (Right side of location)
-  const aqiBoxX = width - 360;
-  const aqiBoxY = 118;
-  const aqiBoxW = 296;
-  const aqiBoxH = 135;
+  // 6. Hero AQI Indicator Module (Right Side)
+  const aqiBoxX = width - 344;
+  const aqiBoxY = 108;
+  const aqiBoxW = 288;
+  const aqiBoxH = 126;
 
   ctx.fillStyle = theme.badgeBg;
   ctx.strokeStyle = theme.badgeBorder;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(aqiBoxX, aqiBoxY, aqiBoxW, aqiBoxH, 20);
+    ctx.roundRect(aqiBoxX, aqiBoxY, aqiBoxW, aqiBoxH, 16);
     ctx.fill();
     ctx.stroke();
   }
 
-  // AQI Number
+  // AQI Large Value
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 58px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(`${report.estimatedAqi || 150}`, aqiBoxX + 24, aqiBoxY + 70);
+  ctx.font = '800 52px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText(`${report.estimatedAqi || 150}`, aqiBoxX + 22, aqiBoxY + 66);
 
   ctx.fillStyle = theme.textAccent;
-  ctx.font = '800 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('AQI', aqiBoxX + 150, aqiBoxY + 45);
+  ctx.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('AQI SCORE', aqiBoxX + 144, aqiBoxY + 42);
 
-  // Intensity Pill
+  // Sub-badge for Status
   const intensityLabel = report.intensityLabel || theme.name;
   ctx.fillStyle = theme.accentColor;
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(aqiBoxX + 24, aqiBoxY + 88, 248, 32, 10);
+    ctx.roundRect(aqiBoxX + 22, aqiBoxY + 80, 244, 28, 6);
     ctx.fill();
   }
   ctx.fillStyle = '#ffffff';
-  ctx.font = '800 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(`${theme.emoji} ${intensityLabel.toUpperCase()}`, aqiBoxX + 38, aqiBoxY + 109);
+  ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText(intensityLabel.toUpperCase(), aqiBoxX + 36, aqiBoxY + 98);
 
-  // 7. Grid of Sensory Indicators (4 metric cards)
+  // 7. Grid of Sensory Indicators (4 Modern Metric Cards)
   const metrics = [
-    { label: 'VISIBILITY', val: report.visibilityLabel || '< 500m (Very Poor)', icon: '👁️' },
-    { label: 'BURNING ODOR', val: report.smellLevel || 'Acrid Peat Smoke', icon: '🔥' },
-    { label: 'PANIC INDEX', val: `${report.panicScore || 65}% Elevated`, icon: '⚡' },
+    { label: 'VISIBILITY RANGE', val: report.visibilityLabel || '< 500m (Very Poor)' },
+    { label: 'SURFACE ODOR', val: report.smellLevel || 'Acrid Peat Smoke' },
+    { label: 'ANOMALY INDEX', val: `${report.panicScore || 65}% Elevated` },
     {
-      label: 'SYMPTOMS',
-      val: (report.symptoms && report.symptoms.length) ? report.symptoms.slice(0, 2).join(', ') : 'Eye Sting, Cough',
-      icon: '🩺'
+      label: 'NOTED SYMPTOMS',
+      val: (report.symptoms && report.symptoms.length) ? report.symptoms.slice(0, 2).join(', ') : 'Eye Sting, Cough'
     }
   ];
 
-  const mStartY = 276;
-  const mWidth = 250;
-  const mHeight = 84;
-  const mGap = 23;
+  const mStartY = 262;
+  const mWidth = 260;
+  const mHeight = 80;
+  const mGap = 16;
 
   metrics.forEach((m, idx) => {
-    const mx = 64 + idx * (mWidth + mGap);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    const mx = 56 + idx * (mWidth + mGap);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
     ctx.lineWidth = 1;
     if (ctx.roundRect) {
       ctx.beginPath();
-      ctx.roundRect(mx, mStartY, mWidth, mHeight, 14);
+      ctx.roundRect(mx, mStartY, mWidth, mHeight, 12);
       ctx.fill();
       ctx.stroke();
     }
 
     ctx.fillStyle = '#64748b';
     ctx.font = '700 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText(`${m.icon}  ${m.label}`, mx + 16, mStartY + 26);
+    ctx.fillText(m.label, mx + 16, mStartY + 26);
 
     ctx.fillStyle = '#f1f5f9';
-    ctx.font = '700 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    // Truncate if long
+    ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     let valText = m.val;
-    if (valText.length > 24) valText = valText.substring(0, 22) + '...';
-    ctx.fillText(valText, mx + 16, mStartY + 55);
+    if (valText.length > 28) valText = valText.substring(0, 26) + '...';
+    ctx.fillText(valText, mx + 16, mStartY + 52);
   });
 
-  // 8. Ground Truth Citizen Remark / Quote Box
-  const qY = 385;
-  const qW = width - 128;
-  const qH = 125;
+  // 8. Citizen Observation Block
+  const qY = 368;
+  const qW = width - 112;
+  const qH = 118;
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
   ctx.lineWidth = 1;
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(64, qY, qW, qH, 16);
+    ctx.roundRect(56, qY, qW, qH, 14);
     ctx.fill();
     ctx.stroke();
   }
 
-  // Left Orange Bar
+  // Left Active Pillar
   ctx.fillStyle = '#ea580c';
   if (ctx.roundRect) {
     ctx.beginPath();
-    ctx.roundRect(64, qY, 6, qH, 3);
+    ctx.roundRect(56, qY, 4, qH, 2);
     ctx.fill();
   } else {
-    ctx.fillRect(64, qY, 6, qH);
+    ctx.fillRect(56, qY, 4, qH);
   }
 
   ctx.fillStyle = '#f97316';
-  ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('CITIZEN GROUND OBSERVATION', 90, qY + 30);
+  ctx.font = '700 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('CITIZEN GROUND OBSERVATION', 80, qY + 26);
 
   ctx.fillStyle = '#e2e8f0';
-  ctx.font = 'italic 500 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.font = 'italic 500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   const desc = report.description || 'Haze is visibly heavy in the neighborhood. Smells strongly of peat smoke.';
-  // Wrap text up to 2 lines
-  wrapText(ctx, `"${desc}"`, 90, qY + 62, qW - 60, 26, 2);
+  wrapText(ctx, `"${desc}"`, 80, qY + 54, qW - 50, 22, 2);
 
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText(`— Reported by ${report.reporterName || 'Local Resident'} (${report.reporterRole || 'Resident'})  •  Trust Weight: ${report.trustScore || 1.0}x`, 90, qY + qH - 18);
+  ctx.fillStyle = '#64748b';
+  ctx.font = '500 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText(`Reported by ${report.reporterName || 'Local Resident'} (${report.reporterRole || 'Resident'})   •   Trust Weight: ${report.trustScore || 1.0}x`, 80, qY + qH - 16);
 
-  // 9. Footer Bar
-  const fY = 575;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  // 9. Modernized Footer Bar
+  const fY = 560;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(64, fY);
-  ctx.lineTo(width - 64, fY);
+  ctx.moveTo(56, fY);
+  ctx.lineTo(width - 56, fY);
   ctx.stroke();
 
   ctx.fillStyle = '#64748b';
-  ctx.font = '500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('Real-time Crowdsourced Air Quality & Smoke Anomaly Monitoring', 64, fY + 34);
+  ctx.font = '500 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('Real-time Crowdsourced Air Quality & Smoke Anomaly Monitoring', 56, fY + 32);
 
   ctx.fillStyle = '#f97316';
-  ctx.font = '700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-  ctx.fillText('jerebu-watch.my  •  Bridge The Blindspots', width - 330, fY + 34);
+  ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillText('jerebu.my   •   Bridge The Blindspots', width - 290, fY + 32);
 
-  // 10. Produce Outputs
+  // 10. Output Generation
   const dataUrl = canvas.toDataURL('image/png');
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
   const safeAreaName = (report.areaName || 'haze-report').toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const fileName = `jerebu-watch-${safeAreaName}-aqi${report.estimatedAqi || 100}.png`;
+  const fileName = `jerebu-${safeAreaName}-aqi${report.estimatedAqi || 100}.png`;
   const file = new File([blob], fileName, { type: 'image/png' });
 
   return {

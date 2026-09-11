@@ -140,8 +140,8 @@
 
       <!-- Sleek Aside Footer -->
       <div class="p-3 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500 shrink-0">
-        <p class="font-medium text-slate-500 dark:text-slate-400">Powered by Laravel + Vue 3</p>
-        <p class="text-slate-400 dark:text-slate-500 mt-0.5">Anomalies by FastAPI / DBSCAN Clustering</p>
+        <p class="font-medium text-slate-500 dark:text-slate-400">Powered by Jerebu</p>
+        <p class="text-slate-400 dark:text-slate-500 mt-0.5">Real-time air quality & hazard tracking</p>
       </div>
     </div>
   </aside>
