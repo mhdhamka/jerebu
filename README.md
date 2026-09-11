@@ -103,4 +103,30 @@ jerebu/
 
 ---
 
+# Contributing
 
+Contributions are always welcome! If you'd like to improve this project, please follow these steps:
+
+* Fork the Repository
+* Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+* Commit your Changes (`git commit -m "add: some amazing feature"`)
+* Push to the Branch (`git push origin feature/AmazingFeature`)
+* Open a Pull Request
+
+---
+
+# License
+
+This project is released under the MIT License.
+
+Feel free to learn from, fork, and improve upon this project.
+
+---
+
+<div align="center">
+
+If you found this project interesting, consider giving it a star!
+
+Made with ❤️ by mdhamka
+
+</div>
