@@ -713,7 +713,6 @@ function renderAnomalyClusters() {
     const popupHtml = `
       <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-orange-200 dark:border-orange-800/80 shadow-2xl min-w-[280px]">
         <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 text-orange-600 dark:text-orange-400">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
           <span class="text-xs font-black uppercase tracking-widest">DBSCAN Smoke Spike</span>
         </div>
         <div class="text-base font-bold text-slate-900 dark:text-white mb-1">${anomaly.area}</div>

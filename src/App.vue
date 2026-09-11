@@ -89,6 +89,8 @@
       >
         <DBSCANAnomalyPanel
           :anomalies="anomalyClusters"
+          :comparison-data="comparisonMetrics"
+          :panic-percentage="panicScore"
           @close="isRightPanelOpen = false; activeRightTab = null"
           @recalculate-dbscan="handleRecalculateDBSCAN"
         />
@@ -141,6 +143,15 @@ import { fastapi } from './services/fastapiEngine.js';
 const officialStations = ref([]);
 const reports = ref([]);
 const anomalyClusters = ref([]);
+
+// Dynamic state variables replacing previous hardcoded metrics
+const comparisonMetrics = ref({
+  govAqi: 124,
+  govPercentage: 60,
+  citizenAqi: 168,
+  citizenPercentage: 84
+});
+const panicScore = ref(78);
 
 // Default closed state on boot for both sidebars
 const isLeftFeedVisible = ref(false); 
