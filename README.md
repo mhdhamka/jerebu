@@ -92,9 +92,7 @@ jerebu/
 │   └── main.js            # Frontend application entry point
 ├── .env.example           # Environment variables template
 ├── .gitignore             # Git ignore rules
-├── bun.lock               # Bun package manager lockfile
 ├── index.html             # HTML entry point for Vite/Vue
-├── metadata.json          # Project metadata configuration
 ├── package-lock.json      # NPM package manager lockfile
 ├── package.json           # Frontend dependencies and scripts
 ├── README.md              # Project documentation
