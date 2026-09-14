@@ -4,7 +4,7 @@
 
 > Crowdsourced Air Quality & Haze Tracker
 
-[Documentation](./assets/docs) · [Live Demo](https://mhdhamka.github.io/jerebu/) · [Report Bug](https://github.com/mhdhamka/jerebu/issues) · [Request Feature](https://github.com/mhdhamka/jerebu/issues)
+[Documentation](./backend/notebooks/) · [Live Demo](https://mhdhamka.github.io/jerebu/) · [Report Bug](https://github.com/mhdhamka/jerebu/issues) · [Request Feature](https://github.com/mhdhamka/jerebu/issues)
 
 ![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-Bundler-646CFF?style=for-the-badge&logo=vite&logoColor=white)
