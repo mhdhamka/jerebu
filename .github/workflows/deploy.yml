@@ -1,4 +1,4 @@
-name: Deploy Jerebu to GitHub Pages
+name: Deploy JerebuAQI to GitHub Pages
 
 on:
   push:
