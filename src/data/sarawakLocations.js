@@ -738,7 +738,7 @@ export async function geocodeSarawakNominatim(query) {
     const response = await fetch(url, {
       headers: {
         'Accept-Language': 'en,ms',
-        'User-Agent': 'JerebuWatch-Sarawak/1.0'
+        'User-Agent': 'JerebuAQI-Sarawak/1.0'
       }
     });
 

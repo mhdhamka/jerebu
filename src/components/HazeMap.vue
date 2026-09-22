@@ -80,6 +80,10 @@
         :official-count="officialStations.length"
         :report-count="reports.length"
         :anomaly-count="anomalyClusters.filter(a => a.isAnomaly).length"
+        :hotspot-count="hotspots.length"
+        :divergence-count="divergences.length"
+        :wind-speed="windData?.speedKmh || 14.5"
+        :wind-direction="windData?.directionLabel || 'SW'"
       />
     </div>
 
@@ -164,6 +168,324 @@
         </transition>
       </div>
     </div>
+
+    <!-- NASA FIRMS Active Fire Satellite Overlay Control Pill / HUD -->
+    <div
+      v-if="filters.hotspots"
+      class="absolute bottom-6 left-3 sm:left-4 z-[400] max-w-[calc(100vw-32px)] sm:max-w-md transition-all duration-300"
+    >
+      <!-- Collapsed Bar -->
+      <div
+        v-if="!isFirmsHudExpanded"
+        class="flex items-center gap-2 p-1.5 pl-3 pr-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-rose-200/90 dark:border-rose-900/80 rounded-2xl shadow-2xl text-xs"
+      >
+        <div class="flex items-center gap-2 cursor-pointer select-none" @click="isFirmsHudExpanded = true">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+          </span>
+          <span class="font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
+            <span>🛰️</span>
+            <span>NASA FIRMS</span>
+          </span>
+          <span class="font-bold text-slate-700 dark:text-slate-200">
+            {{ visibleHotspotsCount }} Active Fires
+          </span>
+          <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300">
+            {{ totalVisibleFrp }} MW
+          </span>
+        </div>
+
+        <div class="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-0.5"></div>
+
+        <!-- Sync Button -->
+        <button
+          type="button"
+          @click="triggerFirmsSync"
+          :disabled="isFirmsSyncing"
+          class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          title="Sync live NASA FIRMS feeds"
+        >
+          <svg
+            class="w-4 h-4 text-rose-500"
+            :class="{ 'animate-spin': isFirmsSyncing }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+
+        <!-- Expand button -->
+        <button
+          type="button"
+          @click="isFirmsHudExpanded = true"
+          class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+          title="Expand NASA FIRMS Controls"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Expanded Control Card -->
+      <div
+        v-else
+        class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-rose-200/90 dark:border-rose-900/80 rounded-3xl shadow-2xl text-xs space-y-3 w-80 sm:w-96"
+      >
+        <!-- Header with minimize -->
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🛰️</span>
+            <div>
+              <div class="font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                NASA FIRMS Satellite Overlay
+                <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-rose-500 text-white">LIVE</span>
+              </div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">VIIRS 375m & MODIS 1km Satellites</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="isFirmsHudExpanded = false"
+            class="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Active Fires</div>
+            <div class="text-sm font-black text-rose-600 dark:text-rose-400 font-mono">{{ visibleHotspotsCount }}</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Transboundary</div>
+            <div class="text-sm font-black text-amber-600 dark:text-amber-400 font-mono">{{ transboundaryCount }}</div>
+          </div>
+          <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Total FRP</div>
+            <div class="text-sm font-black text-red-600 dark:text-red-400 font-mono">{{ totalVisibleFrp }} MW</div>
+          </div>
+        </div>
+
+        <!-- Sensor Selection Pills -->
+        <div>
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Satellite Sensor</div>
+          <div class="grid grid-cols-3 gap-1 p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl">
+            <button
+              type="button"
+              @click="hotspotFilters.sensor = 'all'"
+              :class="hotspotFilters.sensor === 'all' ? 'bg-white dark:bg-slate-700 shadow-xs text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-600 dark:text-slate-400 font-medium'"
+              class="py-1 text-[11px] rounded-lg transition-all cursor-pointer"
+            >
+              All Satellites
+            </button>
+            <button
+              type="button"
+              @click="hotspotFilters.sensor = 'viirs'"
+              :class="hotspotFilters.sensor === 'viirs' ? 'bg-white dark:bg-slate-700 shadow-xs text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-600 dark:text-slate-400 font-medium'"
+              class="py-1 text-[11px] rounded-lg transition-all cursor-pointer"
+            >
+              VIIRS (375m)
+            </button>
+            <button
+              type="button"
+              @click="hotspotFilters.sensor = 'modis'"
+              :class="hotspotFilters.sensor === 'modis' ? 'bg-white dark:bg-slate-700 shadow-xs text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-600 dark:text-slate-400 font-medium'"
+              class="py-1 text-[11px] rounded-lg transition-all cursor-pointer"
+            >
+              MODIS (1km)
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="space-y-2 pt-1">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 dark:text-slate-300 font-medium">High Confidence Only (≥80%)</span>
+            <button
+              type="button"
+              @click="hotspotFilters.confidence = hotspotFilters.confidence === 'high' ? 'all' : 'high'"
+              :class="hotspotFilters.confidence === 'high' ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'"
+              class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
+            >
+              <span
+                :class="hotspotFilters.confidence === 'high' ? 'translate-x-3' : 'translate-x-0'"
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200"
+              />
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 dark:text-slate-300 font-medium">Transboundary Origins Only</span>
+            <button
+              type="button"
+              @click="hotspotFilters.onlyTransboundary = !hotspotFilters.onlyTransboundary"
+              :class="hotspotFilters.onlyTransboundary ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'"
+              class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
+            >
+              <span
+                :class="hotspotFilters.onlyTransboundary ? 'translate-x-3' : 'translate-x-0'"
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200"
+              />
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 dark:text-slate-300 font-medium">Projected Smoke Drift Plumes</span>
+            <button
+              type="button"
+              @click="hotspotFilters.showPlumes = !hotspotFilters.showPlumes"
+              :class="hotspotFilters.showPlumes ? 'bg-orange-500' : 'bg-slate-300 dark:bg-slate-700'"
+              class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
+            >
+              <span
+                :class="hotspotFilters.showPlumes ? 'translate-x-3' : 'translate-x-0'"
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200"
+              />
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1">
+              <span>🌐</span> NASA Satellite Thermal Layer (WMS)
+            </span>
+            <button
+              type="button"
+              @click="toggleGibsWmsLayer"
+              :class="hotspotFilters.showGibsWms ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'"
+              class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200"
+            >
+              <span
+                :class="hotspotFilters.showGibsWms ? 'translate-x-3' : 'translate-x-0'"
+                class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200"
+              />
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions & Sync Info -->
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-2 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            @click="openMapKeyDialog"
+            class="text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium cursor-pointer"
+          >
+            Key: {{ apiKeyMasked }}
+          </button>
+
+          <button
+            type="button"
+            @click="triggerFirmsSync"
+            :disabled="isFirmsSyncing"
+            class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-rose-500/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': isFirmsSyncing }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>{{ isFirmsSyncing ? 'Syncing...' : 'Sync NASA Feed' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NASA FIRMS Map Key Modal -->
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="transform scale-95 opacity-0"
+      enter-to-class="transform scale-100 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="transform scale-100 opacity-100"
+      leave-to-class="transform scale-95 opacity-0"
+    >
+      <div
+        v-if="isMapKeyModalOpen"
+        class="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+        @click.self="isMapKeyModalOpen = false"
+      >
+        <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 text-slate-800 dark:text-slate-100 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🛰️</span>
+              <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">NASA FIRMS API Key</h3>
+                <p class="text-xs text-slate-500">Configure Earthdata credentials or use free feed</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="isMapKeyModalOpen = false"
+              class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+            <p>
+              By default, JerebuAQI automatically fetches the latest 24-hour active fire detections from NASA's high-speed Near Real-Time feeds for Southeast Asia without requiring any key.
+            </p>
+            <p>
+              If you have a dedicated <strong>NASA FIRMS MAP Key</strong>, paste it below to enable custom bounding-box queries and multi-day temporal ranges.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">FIRMS Map Key (32 hex characters)</label>
+            <input
+              type="text"
+              v-model="userMapKeyInput"
+              placeholder="e.g. 9a7b8c... (leave empty for free NRT feed)"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+            />
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <a
+              href="https://firms.modaps.eosdis.nasa.gov/api/map_key"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 font-medium"
+            >
+              <span>Get Free Key at NASA Earthdata</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                v-if="userMapKeyInput"
+                @click="clearMapKey"
+                class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+              >
+                Reset to Free Feed
+              </button>
+              <button
+                type="button"
+                @click="saveMapKey"
+                class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/30 cursor-pointer transition-all"
+              >
+                Save & Sync
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -174,11 +496,15 @@ import { getAQIColor } from '../data/officialStations.js';
 import MapLayerControl from './MapLayerControl.vue';
 import SarawakSearchBar from './SarawakSearchBar.vue';
 import { calculateDistanceKm } from '../data/sarawakLocations.js';
+import { firmsService } from '../services/nasaFirmsService.js';
 
 const props = defineProps({
   officialStations: { type: Array, default: () => [] },
   reports: { type: Array, default: () => [] },
   anomalyClusters: { type: Array, default: () => [] },
+  hotspots: { type: Array, default: () => [] },
+  windData: { type: Object, default: () => ({ speedKmh: 14.5, directionDeg: 215, directionLabel: 'SW' }) },
+  divergences: { type: Array, default: () => [] },
   isPickingLocation: { type: Boolean, default: false },
   isDark: { type: Boolean, default: false }
 });
@@ -190,7 +516,11 @@ const emit = defineEmits([
   'upvote-report',
   'share-report',
   'report-at-location',
-  'toast'
+  'open-sync-modal',
+  'open-forecast-modal',
+  'open-moe-modal',
+  'toast',
+  'refresh-firms'
 ]);
 
 let map = null;
@@ -198,9 +528,117 @@ let tileLayerInstance = null;
 let officialMarkersLayer = null;
 let reportsMarkersLayer = null;
 let anomalyOverlayLayer = null;
+let hotspotsLayer = null;
+let windLayer = null;
+let divergenceLayer = null;
+let gibsWmsLayer = null;
 let tempPickMarker = null;
 let searchLocationMarker = null;
 let currentSearchedLoc = null;
+
+const isFirmsHudExpanded = ref(false);
+const isFirmsSyncing = ref(false);
+const isMapKeyModalOpen = ref(false);
+const userMapKeyInput = ref(firmsService.getMapKey());
+
+const hotspotFilters = ref({
+  sensor: 'all', // 'all', 'viirs', 'modis'
+  confidence: 'all', // 'all', 'high'
+  onlyTransboundary: false,
+  showPlumes: true,
+  showGibsWms: false
+});
+
+const filteredHotspots = computed(() => {
+  let list = props.hotspots || [];
+  if (hotspotFilters.value.sensor !== 'all') {
+    const s = hotspotFilters.value.sensor.toLowerCase();
+    list = list.filter(h =>
+      (h.sensorType || '').toLowerCase() === s ||
+      (s === 'viirs' && (h.satellite || '').includes('VIIRS')) ||
+      (s === 'modis' && (h.satellite || '').includes('MODIS'))
+    );
+  }
+  if (hotspotFilters.value.confidence === 'high') {
+    list = list.filter(h => h.confidence === 'high' || (h.confidenceScore && h.confidenceScore >= 80));
+  }
+  if (hotspotFilters.value.onlyTransboundary) {
+    list = list.filter(h => h.isTransboundary);
+  }
+  return list;
+});
+
+const visibleHotspotsCount = computed(() => filteredHotspots.value.length);
+const totalVisibleFrp = computed(() => Math.round(filteredHotspots.value.reduce((sum, h) => sum + (h.frp || 0), 0)));
+const transboundaryCount = computed(() => filteredHotspots.value.filter(h => h.isTransboundary).length);
+const apiKeyMasked = computed(() => {
+  const k = firmsService.getMapKey();
+  if (!k) return 'Free NRT Feed';
+  return k.slice(0, 4) + '••••' + k.slice(-3);
+});
+
+async function triggerFirmsSync() {
+  if (isFirmsSyncing.value) return;
+  isFirmsSyncing.value = true;
+  emit('toast', '🛰️ Fetching live NASA FIRMS active fire satellite data...');
+  try {
+    const res = await firmsService.fetchLiveHotspots({
+      sensor: hotspotFilters.value.sensor,
+      confidence: hotspotFilters.value.confidence,
+      refresh: true
+    });
+    emit('refresh-firms', res);
+    emit('toast', `🔥 Synced: ${res.hotspots?.length || 0} active hotspots from NASA FIRMS`);
+  } catch (err) {
+    emit('toast', `NASA FIRMS notice: ${err.message}`);
+  } finally {
+    isFirmsSyncing.value = false;
+  }
+}
+
+function toggleGibsWmsLayer() {
+  hotspotFilters.value.showGibsWms = !hotspotFilters.value.showGibsWms;
+  if (!map) return;
+  if (hotspotFilters.value.showGibsWms) {
+    if (!gibsWmsLayer) {
+      gibsWmsLayer = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi', {
+        layers: 'VIIRS_NOAA20_Thermal_Anomalies_375m_All,MODIS_Combined_Thermal_Anomalies_All',
+        format: 'image/png',
+        transparent: true,
+        opacity: 0.7,
+        attribution: 'NASA GIBS / FIRMS'
+      });
+    }
+    if (!map.hasLayer(gibsWmsLayer)) {
+      map.addLayer(gibsWmsLayer);
+      emit('toast', '🌐 NASA Satellite Thermal (WMS) tile layer activated');
+    }
+  } else {
+    if (gibsWmsLayer && map.hasLayer(gibsWmsLayer)) {
+      map.removeLayer(gibsWmsLayer);
+    }
+  }
+}
+
+function openMapKeyDialog() {
+  userMapKeyInput.value = firmsService.getMapKey();
+  isMapKeyModalOpen.value = true;
+}
+
+function saveMapKey() {
+  firmsService.setMapKey(userMapKeyInput.value);
+  isMapKeyModalOpen.value = false;
+  emit('toast', userMapKeyInput.value ? 'NASA FIRMS Map Key saved!' : 'Switched to free Near-Real-Time NASA feed.');
+  triggerFirmsSync();
+}
+
+function clearMapKey() {
+  userMapKeyInput.value = '';
+  firmsService.setMapKey('');
+  isMapKeyModalOpen.value = false;
+  emit('toast', 'Reset to free NASA Near-Real-Time feeds.');
+  triggerFirmsSync();
+}
 
 const activeRegion = ref('Miri (Hotspot)');
 const isRegionDropdownOpen = ref(false);
@@ -212,7 +650,10 @@ const legendContainer = ref(null);
 const filters = ref({
   official: true,
   community: true,
-  anomalies: true
+  anomalies: true,
+  hotspots: true,
+  wind: true,
+  divergence: true
 });
 
 const regions = [
@@ -275,6 +716,9 @@ function syncLayers(currentFilters = filters.value) {
   manageLayer(officialMarkersLayer, currentFilters.official);
   manageLayer(reportsMarkersLayer, currentFilters.community);
   manageLayer(anomalyOverlayLayer, currentFilters.anomalies);
+  manageLayer(hotspotsLayer, currentFilters.hotspots);
+  manageLayer(windLayer, currentFilters.wind);
+  manageLayer(divergenceLayer, currentFilters.divergence);
 }
 
 onMounted(() => {
@@ -295,9 +739,15 @@ onUnmounted(() => {
 watch(() => props.officialStations, () => renderOfficialMarkers(), { deep: true });
 watch(() => props.reports, () => renderReportMarkers(), { deep: true });
 watch(() => props.anomalyClusters, () => renderAnomalyClusters(), { deep: true });
+watch(() => props.hotspots, () => renderHotspots(), { deep: true });
+watch(() => props.windData, () => renderWindVectors(), { deep: true });
+watch(() => props.divergences, () => renderDivergences(), { deep: true });
 watch(() => props.isDark, () => {
   renderAllLayers();
 });
+watch(hotspotFilters, () => {
+  renderHotspots();
+}, { deep: true });
 
 watch(filters, (newVal) => {
   syncLayers(newVal);
@@ -318,6 +768,9 @@ function initMap() {
   officialMarkersLayer = L.layerGroup().addTo(map);
   reportsMarkersLayer = L.layerGroup().addTo(map);
   anomalyOverlayLayer = L.layerGroup().addTo(map);
+  hotspotsLayer = L.layerGroup().addTo(map);
+  windLayer = L.layerGroup().addTo(map);
+  divergenceLayer = L.layerGroup().addTo(map);
 
   map.on('click', (e) => {
     if (props.isPickingLocation) {
@@ -343,7 +796,7 @@ function initMap() {
       e.stopPropagation();
       e.preventDefault();
       const reportId = shareBtn.getAttribute('data-report-id');
-      const rep = props.reports.find(r => String(r.id) === String(reportId));
+      const rep = (props.reports || []).find(r => String(r.id) === String(reportId));
       if (rep) emit('share-report', rep);
       return;
     }
@@ -359,6 +812,33 @@ function initMap() {
       return;
     }
 
+    const syncStationBtn = e.target.closest('.btn-sync-station-action');
+    if (syncStationBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const stationId = syncStationBtn.getAttribute('data-station-id');
+      emit('open-sync-modal', stationId);
+      return;
+    }
+
+    const forecastBtn = e.target.closest('.btn-forecast-station-action');
+    if (forecastBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const stationId = forecastBtn.getAttribute('data-station-id');
+      emit('open-forecast-modal', stationId);
+      return;
+    }
+
+    const moeBtn = e.target.closest('.btn-moe-station-action');
+    if (moeBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const stationId = moeBtn.getAttribute('data-station-id');
+      emit('open-moe-modal', stationId);
+      return;
+    }
+
     const dismissBtn = e.target.closest('.btn-dismiss-search-pin');
     if (dismissBtn) {
       e.stopPropagation();
@@ -368,6 +848,33 @@ function initMap() {
         searchLocationMarker = null;
         currentSearchedLoc = null;
       }
+      return;
+    }
+
+    const focusDriftBtn = e.target.closest('.btn-focus-hotspot-drift');
+    if (focusDriftBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const lat = parseFloat(focusDriftBtn.getAttribute('data-lat'));
+      const lng = parseFloat(focusDriftBtn.getAttribute('data-lng'));
+      const endLat = parseFloat(focusDriftBtn.getAttribute('data-end-lat'));
+      const endLng = parseFloat(focusDriftBtn.getAttribute('data-end-lng'));
+      if (map && !isNaN(lat) && !isNaN(lng)) {
+        const bounds = L.latLngBounds([[lat, lng], [endLat, endLng]]);
+        map.fitBounds(bounds, { padding: [80, 80], maxZoom: 11 });
+        emit('toast', '🔎 Zoomed into wind-blown smoke drift corridor');
+      }
+      return;
+    }
+
+    const reportHotspotBtn = e.target.closest('.btn-report-at-hotspot');
+    if (reportHotspotBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const name = reportHotspotBtn.getAttribute('data-loc-name') || 'Hotspot Corridor';
+      const lat = parseFloat(reportHotspotBtn.getAttribute('data-lat'));
+      const lng = parseFloat(reportHotspotBtn.getAttribute('data-lng'));
+      emit('report-at-location', { areaName: name, lat, lng });
       return;
     }
   });
@@ -485,6 +992,9 @@ function renderAllLayers() {
   renderOfficialMarkers();
   renderReportMarkers();
   renderAnomalyClusters();
+  renderHotspots();
+  renderWindVectors();
+  renderDivergences();
 }
 
 function renderOfficialMarkers() {
@@ -559,7 +1069,35 @@ function renderOfficialMarkers() {
         </div>
 
         <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${st.description}</div>
-        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Updated: ${st.updatedAt}</div>
+        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mb-2.5">Updated: ${st.updatedAt}</div>
+
+        <button
+          type="button"
+          class="btn-sync-station-action w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-95"
+          data-station-id="${st.id}"
+        >
+          <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Live Sync IQAir / DOE Feed</span>
+        </button>
+
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            class="btn-forecast-station-action py-2 px-2.5 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/60 dark:hover:bg-orange-900/80 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 rounded-2xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
+            data-station-id="${st.id}"
+          >
+            <span>📈 Forecast</span>
+          </button>
+          <button
+            type="button"
+            class="btn-moe-station-action py-2 px-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/60 dark:hover:bg-red-900/80 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-2xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
+            data-station-id="${st.id}"
+          >
+            <span>🏫 MOE SOP</span>
+          </button>
+        </div>
       </div>
     `;
 
@@ -767,13 +1305,300 @@ function renderAnomalyClusters() {
   }
   syncLayers();
 }
+
+function renderHotspots() {
+  if (!hotspotsLayer) return;
+  hotspotsLayer.clearLayers();
+
+  const isDark = props.isDark;
+  const wind = props.windData || { speedKmh: 14.5, directionDeg: 215, directionLabel: 'SW' };
+  const windDeg = wind.directionDeg ?? 215;
+  const windSpeed = Math.max(wind.speedKmh ?? 14.5, 5);
+  // Wind direction: blowing towards (windDeg + 180) % 360
+  const driftAzimuth = (windDeg + 180) % 360;
+  const driftRad = (driftAzimuth * Math.PI) / 180;
+
+  const list = filteredHotspots.value;
+
+  for (const h of list) {
+    const isTrans = h.isTransboundary;
+    const isHigh = h.confidence === 'high' || (h.confidenceScore && h.confidenceScore >= 80);
+    const isViirs = (h.sensorType || '').toLowerCase() === 'viirs' || (h.satellite || '').includes('VIIRS') || (h.instrument || '').includes('VIIRS');
+    const sensorLabel = isViirs ? 'VIIRS 375m' : 'MODIS 1km';
+    const frpValue = h.frp ? Math.round(h.frp) : (isHigh ? 45 : 18);
+
+    const flameHtml = `
+      <div class="flex flex-col items-center group cursor-pointer -translate-x-1/2 -translate-y-1/2">
+        <div class="relative flex items-center justify-center">
+          <div class="absolute w-8 h-8 rounded-full ${isHigh ? 'bg-rose-500/40 animate-ping' : 'bg-amber-500/30'}"></div>
+          <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr ${isHigh ? 'from-rose-600 via-red-600 to-amber-500' : 'from-amber-600 to-yellow-500'} border-2 border-white dark:border-slate-900 shadow-xl flex items-center justify-center text-sm font-black text-white select-none">
+            🔥
+          </div>
+          <span class="absolute -top-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-black ${isTrans ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'} ring-1 ring-white/50">
+            ${isTrans ? 'IND' : 'MY'}
+          </span>
+        </div>
+        <div class="mt-1 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white font-mono text-[9px] font-bold border border-slate-700 shadow-md whitespace-nowrap flex items-center gap-1">
+          <span>${frpValue} MW</span>
+          <span class="text-slate-400 font-sans text-[8px]">${isViirs ? '375m' : '1km'}</span>
+        </div>
+      </div>
+    `;
+
+    const icon = L.divIcon({
+      html: flameHtml,
+      className: 'custom-hotspot-pin',
+      iconSize: [0, 0]
+    });
+
+    const marker = L.marker([h.lat, h.lng], { icon });
+
+    // Distance to Kuching
+    const distToKuching = h.distanceToKuchingKm ?? Math.round(calculateDistanceKm(h.lat, h.lng, 1.5533, 110.3592));
+    const estTransitHours = Math.round(distToKuching / windSpeed);
+
+    // Projected Smoke Drift Trajectory
+    const driftKm = Math.min(Math.max((h.frp || 20) * 2, 45), 110);
+    const endLat = h.lat + (driftKm / 111) * Math.cos(driftRad);
+    const endLng = h.lng + (driftKm / (111 * Math.cos(h.lat * Math.PI / 180))) * Math.sin(driftRad);
+
+    // Lateral dispersion cone points
+    const coneAngle = (14 * Math.PI) / 180;
+    const leftRad = driftRad - coneAngle;
+    const rightRad = driftRad + coneAngle;
+    const leftLat = h.lat + (driftKm * 0.9 / 111) * Math.cos(leftRad);
+    const leftLng = h.lng + (driftKm * 0.9 / (111 * Math.cos(h.lat * Math.PI / 180))) * Math.sin(leftRad);
+    const rightLat = h.lat + (driftKm * 0.9 / 111) * Math.cos(rightRad);
+    const rightLng = h.lng + (driftKm * 0.9 / (111 * Math.cos(h.lat * Math.PI / 180))) * Math.sin(rightRad);
+
+    if (hotspotFilters.value.showPlumes) {
+      const plumePolygon = L.polygon([
+        [h.lat, h.lng],
+        [leftLat, leftLng],
+        [endLat, endLng],
+        [rightLat, rightLng]
+      ], {
+        color: isTrans ? '#ef4444' : '#f97316',
+        fillColor: isTrans ? '#f87171' : '#fb923c',
+        fillOpacity: isDark ? 0.12 : 0.08,
+        weight: 1,
+        dashArray: '3, 5'
+      });
+      hotspotsLayer.addLayer(plumePolygon);
+    }
+
+    // Centerline drift trajectory
+    const driftLine = L.polyline([[h.lat, h.lng], [endLat, endLng]], {
+      color: isTrans ? '#ef4444' : '#f97316',
+      weight: 2.5,
+      opacity: 0.7,
+      dashArray: '5, 5'
+    });
+    hotspotsLayer.addLayer(driftLine);
+
+    // Thermal glow circle
+    const glowCircle = L.circle([h.lat, h.lng], {
+      radius: Math.max((h.frp || 20) * 120, 2500),
+      color: isTrans ? '#ef4444' : '#f97316',
+      fillColor: isTrans ? '#ef4444' : '#f97316',
+      fillOpacity: isDark ? 0.12 : 0.08,
+      weight: 1
+    });
+    hotspotsLayer.addLayer(glowCircle);
+
+    const displayName = h.locationName || h.areaName || 'Active Fire Hotspot';
+    const countryName = h.country || (isTrans ? 'West Kalimantan, Indonesia' : 'Sarawak, Malaysia');
+    const brightnessC = h.brightness ? Math.round(h.brightness - 273.15) : null;
+
+    const popupHtml = `
+      <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-rose-200/80 dark:border-rose-900/80 shadow-2xl min-w-[280px] max-w-[320px]">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
+          <span class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1">
+            <span>🛰️</span> NASA FIRMS Active Fire
+          </span>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-lg ${isHigh ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">
+            ${isHigh ? 'HIGH CONFIDENCE (≥80%)' : 'NOMINAL CONFIDENCE'}
+          </span>
+        </div>
+
+        <div class="text-base font-bold text-slate-900 dark:text-white leading-snug">${displayName}</div>
+        <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-2.5 flex items-center gap-1 flex-wrap">
+          <span>${countryName}</span>
+          ${isTrans ? '<span class="px-1.5 py-0.2 rounded font-black text-[9px] bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">⚠️ TRANSBOUNDARY ORIGIN</span>' : '<span class="px-1.5 py-0.2 rounded font-bold text-[9px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">🔥 LOCAL PEAT BURN</span>'}
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 mb-2.5 text-xs">
+          <div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Fire Power (FRP)</div>
+            <div class="text-sm font-mono font-black text-rose-600 dark:text-rose-400">${frpValue} MW</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Brightness Temp</div>
+            <div class="text-sm font-mono font-black text-amber-600 dark:text-amber-400">${h.brightness ? `${h.brightness} K (${brightnessC}°C)` : 'N/A'}</div>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-2xl bg-orange-50/70 dark:bg-orange-950/40 border border-orange-200/60 dark:border-orange-900/60 text-xs mb-3 space-y-1">
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400">Satellite Sensor:</span>
+            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">${h.satellite || 'VIIRS NOAA-20'} (${sensorLabel})</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400">Distance to Kuching:</span>
+            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">${distToKuching} km</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400">Detection Pass:</span>
+            <span class="font-mono text-slate-700 dark:text-slate-300">${h.acqDate || 'Today'} ${h.acqTime || 'UTC'} (${h.dayNight === 'D' ? 'Day' : 'Night'})</span>
+          </div>
+          <div class="flex justify-between border-t border-orange-200/60 dark:border-orange-800/60 pt-1 text-[11px]">
+            <span class="text-slate-600 dark:text-slate-300 font-semibold">Smoke Drift:</span>
+            <span class="font-bold text-orange-600 dark:text-orange-400">Towards ${props.windData?.directionLabel || 'NE'} (~${estTransitHours}h transit)</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="btn-focus-hotspot-drift flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold text-center cursor-pointer transition-all"
+            data-lat="${h.lat}"
+            data-lng="${h.lng}"
+            data-end-lat="${endLat}"
+            data-end-lng="${endLng}"
+          >
+            🔎 Zoom Smoke Corridor
+          </button>
+          <button
+            type="button"
+            class="btn-report-at-hotspot py-2 px-3 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white rounded-xl text-xs font-bold text-center cursor-pointer shadow-md shadow-rose-500/20 transition-all"
+            data-loc-name="${displayName}"
+            data-lat="${h.lat}"
+            data-lng="${h.lng}"
+            title="Submit citizen report for this area"
+          >
+            Report Here
+          </button>
+        </div>
+      </div>
+    `;
+
+    marker.bindPopup(popupHtml, { maxWidth: 320 });
+    hotspotsLayer.addLayer(marker);
+  }
+}
+
+function renderWindVectors() {
+  if (!windLayer) return;
+  windLayer.clearLayers();
+
+  const wind = props.windData || { speedKmh: 14.5, directionDeg: 215, directionLabel: 'SW' };
+  const blowTowardDeg = (wind.directionDeg + 180) % 360;
+
+  // Grid points across Borneo & Sarawak (South China Sea to interior)
+  const minLat = 1.0, maxLat = 4.6, stepLat = 0.9;
+  const minLng = 109.8, maxLng = 115.2, stepLng = 1.1;
+
+  for (let lat = minLat; lat <= maxLat; lat += stepLat) {
+    for (let lng = minLng; lng <= maxLng; lng += stepLng) {
+      const localVar = Math.sin(lat * 4) * 6;
+      const angle = (blowTowardDeg + localVar) % 360;
+
+      const vectorHtml = `
+        <div class="pointer-events-none flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2 opacity-75 hover:opacity-100 transition-opacity">
+          <div style="transform: rotate(${angle}deg);" class="transition-transform duration-700">
+            <svg class="w-7 h-7 text-sky-500 dark:text-sky-400 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-4 4m4-4l4 4" />
+            </svg>
+          </div>
+          <div class="text-[9px] font-mono font-bold text-sky-700 dark:text-sky-300 bg-white/80 dark:bg-slate-900/80 px-1 py-0.2 rounded shadow-xs border border-sky-300/40 whitespace-nowrap">
+            ${wind.speedKmh} km/h
+          </div>
+        </div>
+      `;
+
+      const icon = L.divIcon({
+        html: vectorHtml,
+        className: 'custom-wind-vector-pin',
+        iconSize: [0, 0]
+      });
+
+      const marker = L.marker([lat, lng], { icon, interactive: false });
+      windLayer.addLayer(marker);
+    }
+  }
+}
+
+function renderDivergences() {
+  if (!divergenceLayer) return;
+  divergenceLayer.clearLayers();
+
+  for (const div of props.divergences) {
+    if (!div.isDivergent) continue;
+
+    const outerCircle = L.circle([div.lat, div.lng], {
+      radius: 9000,
+      color: '#eab308',
+      fillColor: '#eab308',
+      fillOpacity: 0.15,
+      weight: 2,
+      dashArray: '5, 5'
+    });
+
+    const badgeHtml = `
+      <div class="flex flex-col items-center pointer-events-none -translate-x-1/2 -translate-y-1/2 cursor-pointer">
+        <div class="relative px-2.5 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[10px] shadow-xl border border-amber-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-auto">
+          <span>⚠️</span>
+          <span>+${div.deltaAqi} AQI Divergence</span>
+        </div>
+      </div>
+    `;
+
+    const badgeIcon = L.divIcon({
+      html: badgeHtml,
+      className: 'custom-divergence-pin',
+      iconSize: [0, 0]
+    });
+
+    const popupHtml = `
+      <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-amber-200 dark:border-amber-800 shadow-2xl min-w-[270px]">
+        <div class="text-xs font-black uppercase text-amber-600 dark:text-amber-400 mb-1">Reality Check Divergence</div>
+        <div class="text-base font-bold text-slate-900 dark:text-white mb-2">${div.stationName}</div>
+        <div class="space-y-1.5 text-xs bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/60 mb-2.5">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Official Sensor:</span>
+            <span class="font-bold">${div.officialAqi} AQI</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Citizen Reports:</span>
+            <span class="font-bold text-orange-600">${div.citizenAqi} AQI</span>
+          </div>
+          <div class="flex justify-between border-t border-amber-200/60 pt-1">
+            <span class="font-semibold text-amber-900 dark:text-amber-200">Discrepancy:</span>
+            <span class="font-mono font-bold text-red-600">+${div.deltaAqi} AQI</span>
+          </div>
+        </div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">${div.reason || 'Local low-lying smoke trapped by humidity while elevated sensor shows lower values.'}</div>
+      </div>
+    `;
+
+    const marker = L.marker([div.lat, div.lng], { icon: badgeIcon });
+    marker.bindPopup(popupHtml);
+    outerCircle.bindPopup(popupHtml);
+
+    divergenceLayer.addLayer(outerCircle);
+    divergenceLayer.addLayer(marker);
+  }
+}
 </script>
 
 <style scoped>
 :deep(.custom-report-badge-marker),
 :deep(.custom-official-pin),
 :deep(.custom-anomaly-pin),
-:deep(.custom-search-highlight-pin) {
+:deep(.custom-search-highlight-pin),
+:deep(.custom-hotspot-pin),
+:deep(.custom-wind-vector-pin),
+:deep(.custom-divergence-pin) {
   background: transparent;
   border: none;
 }

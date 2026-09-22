@@ -246,7 +246,7 @@ const shareText = computed(() => {
   const intensity = props.report.intensityLabel || 'Unhealthy';
   const vis = props.report.visibilityLabel || '< 500m';
   const smell = props.report.smellLevel || 'Burning Odor';
-  return `Jerebu Alert in ${area}: Estimated AQI is ${aqi} (${intensity}). Visibility: ${vis}, Odor: ${smell}. Reported via Jerebu #JerebuWatch #AirQuality`;
+  return `Jerebu Alert in ${area}: Estimated AQI is ${aqi} (${intensity}). Visibility: ${vis}, Odor: ${smell}. Reported via JerebuAQI #JerebuAQI #AirQuality`;
 });
 
 const whatsappShareUrl = computed(() => {

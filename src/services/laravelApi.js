@@ -95,6 +95,18 @@ class LaravelApiService {
     return stations;
   }
 
+  // PATCH /api/v1/stations/:id
+  updateStationData(stationId, updatedFields) {
+    const idx = this.stations.findIndex(s => s.id === stationId);
+    if (idx !== -1) {
+      this.stations[idx] = { ...this.stations[idx], ...updatedFields };
+      redis.setEx('haze:official:stations', 3600, [...this.stations]);
+      this.log(`/api/v1/stations/${stationId}`, 'PATCH', 200, 1.2, `Updated station "${this.stations[idx].name}" to AQI ${updatedFields.aqi} (${updatedFields.status || 'Updated'})`);
+      return { ...this.stations[idx] };
+    }
+    return null;
+  }
+
   // GET /api/v1/reports
   async getReports() {
     const start = performance.now();

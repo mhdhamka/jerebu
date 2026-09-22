@@ -1,0 +1,33 @@
+{
+  "id": "/",
+  "name": "JerebuAQI: Sarawak Air Quality & Haze Intelligence",
+  "short_name": "JerebuAQI",
+  "description": "Crowdsourced haze tracking, official APIMS stations, NASA FIRMS hotspots, wind drift vectors, and MOE school advisories.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#f97316",
+  "categories": ["weather", "utilities", "health"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

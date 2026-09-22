@@ -10,10 +10,17 @@
       :is-dbscan-open="isRightPanelOpen && activeRightTab === 'dbscan'"
       :is-console-open="isRightPanelOpen && activeRightTab === 'console'"
       :is-dark="isDark"
+      :max-aqi="maxAqi"
       @toggle-theme="toggleTheme"
       @toggle-dbscan="toggleRightPanel('dbscan')"
       @toggle-console="toggleRightPanel('console')"
       @open-report-modal="openReportModal"
+      @open-export-modal="isExportModalOpen = true"
+      @open-sync-modal="openSyncModal"
+      @open-forecast-modal="openForecastModal(null)"
+      @open-moe-modal="openMoeModal(null)"
+      @open-divergence-modal="isDivergenceModalOpen = true"
+      @open-notification-modal="isNotificationModalOpen = true"
       @switch-user="handleSwitchUser"
     />
 
@@ -54,13 +61,20 @@
           :official-stations="officialStations"
           :reports="reports"
           :anomaly-clusters="anomalyClusters"
+          :hotspots="nasaHotspots"
+          :wind-data="liveWindData"
+          :divergences="sensorDivergences"
           :is-picking-location="isPickingLocation"
           :is-dark="isDark"
           @location-selected="handleLocationPicked"
           @cancel-pick="isPickingLocation = false"
           @share-report="handleShareReport"
           @report-at-location="handleReportAtLocation"
+          @open-sync-modal="openSyncModal"
+          @open-forecast-modal="openForecastModal"
+          @open-moe-modal="openMoeModal"
           @toast="showToast"
+          @refresh-firms="handleFirmsRefreshed"
         />
 
         <!-- Modern Glowing Floating Action Button (FAB) -->
@@ -114,6 +128,48 @@
       @close="sharingReport = null"
     />
 
+    <AqiHistoryExportModal
+      v-if="isExportModalOpen"
+      @close="isExportModalOpen = false"
+      @downloaded="handleExportDownloaded"
+    />
+
+    <LiveAqiSyncModal
+      v-if="isSyncModalOpen"
+      :stations="officialStations"
+      @close="isSyncModalOpen = false"
+      @station-updated="handleStationUpdated"
+      @sync-all="handleSyncAllStations"
+      @toast="showToast"
+    />
+
+    <AqiForecastModal
+      v-if="isForecastModalOpen"
+      :stations="officialStations"
+      :initial-station-id="forecastStationId"
+      @close="isForecastModalOpen = false"
+    />
+
+    <MoeAdvisoryModal
+      v-if="isMoeModalOpen"
+      :initial-station-id="moeStationId"
+      :stations="officialStations"
+      @close="isMoeModalOpen = false"
+    />
+
+    <DivergenceModal
+      v-if="isDivergenceModalOpen"
+      :stations="officialStations"
+      :reports="reports"
+      @close="isDivergenceModalOpen = false"
+    />
+
+    <NotificationSettingsModal
+      v-if="isNotificationModalOpen"
+      @close="isNotificationModalOpen = false"
+      @toast="showToast"
+    />
+
     <!-- Modern Glass Toast Notification Banner -->
     <transition name="toast-slide">
       <div
@@ -128,21 +184,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import TopNavbar from './components/TopNavbar.vue';
 import HazeMap from './components/HazeMap.vue';
 import ReportModal from './components/ReportModal.vue';
 import SocialShareModal from './components/SocialShareModal.vue';
 import DBSCANAnomalyPanel from './components/DBSCANAnomalyPanel.vue';
 import ReportFeed from './components/ReportFeed.vue';
+import AqiHistoryExportModal from './components/AqiHistoryExportModal.vue';
+import LiveAqiSyncModal from './components/LiveAqiSyncModal.vue';
+import AqiForecastModal from './components/AqiForecastModal.vue';
+import MoeAdvisoryModal from './components/MoeAdvisoryModal.vue';
+import DivergenceModal from './components/DivergenceModal.vue';
+import NotificationSettingsModal from './components/NotificationSettingsModal.vue';
 
 import { laravel } from './services/laravelApi.js';
 import { redis } from './services/redisStore.js';
 import { fastapi } from './services/fastapiEngine.js';
+import { liveAqiSync } from './services/liveAqiSyncService.js';
+import { firmsService } from './services/nasaFirmsService.js';
+import { windService } from './services/windVectorService.js';
+import { divergenceEngine } from './services/divergenceService.js';
+import { pushService } from './services/pushNotificationService.js';
 
 const officialStations = ref([]);
 const reports = ref([]);
 const anomalyClusters = ref([]);
+const nasaHotspots = ref([]);
+const liveWindData = ref(windService.getWindData());
+const sensorDivergences = ref([]);
 
 // Dynamic state variables replacing previous hardcoded metrics
 const comparisonMetrics = ref({
@@ -159,6 +229,15 @@ const isRightPanelOpen = ref(false);
 const activeRightTab = ref(null); 
 
 const isReportModalOpen = ref(false);
+const isExportModalOpen = ref(false);
+const isSyncModalOpen = ref(false);
+const isForecastModalOpen = ref(false);
+const forecastStationId = ref(null);
+const isMoeModalOpen = ref(false);
+const moeStationId = ref(null);
+const isDivergenceModalOpen = ref(false);
+const isNotificationModalOpen = ref(false);
+
 const sharingReport = ref(null);
 const isPickingLocation = ref(false);
 const pickedCoords = ref({ lat: 4.450, lng: 114.020 });
@@ -196,6 +275,21 @@ const activeAnomalyCount = computed(() => {
   return anomalyClusters.value.filter(a => a.isAnomaly).length;
 });
 
+const maxAqi = computed(() => {
+  if (!officialStations.value.length) return 142;
+  return Math.max(...officialStations.value.map(s => s.aqi || 0));
+});
+
+function openForecastModal(stationId = null) {
+  forecastStationId.value = stationId;
+  isForecastModalOpen.value = true;
+}
+
+function openMoeModal(stationId = null) {
+  moeStationId.value = stationId;
+  isMoeModalOpen.value = true;
+}
+
 const handleKeydown = (e) => {
   if ((e.key === 'r' || e.key === 'R') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) {
     if (!isReportModalOpen.value && !isPickingLocation.value) {
@@ -205,12 +299,35 @@ const handleKeydown = (e) => {
   }
 };
 
+watch([officialStations, reports], () => {
+  if (officialStations.value.length && reports.value.length) {
+    sensorDivergences.value = divergenceEngine.calculateDivergence(officialStations.value, reports.value);
+  }
+}, { deep: true });
+
 onMounted(async () => {
   initTheme();
 
   officialStations.value = await laravel.getOfficialStations();
   reports.value = await laravel.getReports();
   anomalyClusters.value = laravel.computeAnomalies();
+  nasaHotspots.value = firmsService.getHotspots();
+  sensorDivergences.value = divergenceEngine.calculateDivergence(officialStations.value, reports.value);
+
+  // Background live NASA FIRMS satellite active fire update
+  firmsService.fetchLiveHotspots({ refresh: false }).then(res => {
+    if (res && res.hotspots && res.hotspots.length > 0) {
+      nasaHotspots.value = res.hotspots;
+    }
+  }).catch(() => {});
+
+  // Background live wind update from Open-Meteo GFS
+  windService.fetchLiveWind().then(w => {
+    if (w) liveWindData.value = w;
+  });
+
+  // Background PWA push service setup
+  pushService.init();
 
   window.addEventListener('keydown', handleKeydown);
 });
@@ -261,6 +378,12 @@ function handleLocationPicked(coords) {
   showToast(`Selected map coordinates: ${coords.lat}, ${coords.lng}`);
 }
 
+function handleFirmsRefreshed(res) {
+  if (res && res.hotspots && res.hotspots.length > 0) {
+    nasaHotspots.value = res.hotspots;
+  }
+}
+
 async function handleSubmitReport(formData) {
   await laravel.submitReport(formData);
   reports.value = await laravel.getReports();
@@ -276,6 +399,57 @@ function handleUpvote(reportId) {
 
 function handleShareReport(report) {
   sharingReport.value = report;
+}
+
+function handleExportDownloaded(payload) {
+  showToast(`Downloaded CSV: ${payload.filename} (${payload.rowCount} records)`);
+}
+
+function openSyncModal() {
+  isSyncModalOpen.value = true;
+}
+
+function handleStationUpdated({ stationId, updatedData }) {
+  const updated = laravel.updateStationData(stationId, updatedData);
+  if (updated) {
+    const idx = officialStations.value.findIndex(s => s.id === stationId);
+    if (idx !== -1) {
+      officialStations.value[idx] = { ...officialStations.value[idx], ...updatedData };
+      officialStations.value = [...officialStations.value];
+    }
+    if (stationId === 'MY_SWK_02') {
+      comparisonMetrics.value.govAqi = updatedData.aqi;
+      comparisonMetrics.value.govPercentage = Math.min(100, Math.round((updatedData.aqi / 300) * 100));
+    }
+  }
+}
+
+async function handleSyncAllStations() {
+  showToast('Synchronizing all 10 Sarawak stations with live open atmospheric sensors...');
+  try {
+    for (const st of officialStations.value) {
+      if (st.region === 'Sarawak') {
+        const live = await liveAqiSync.fetchOpenStationFeed({
+          lat: st.lat,
+          lng: st.lng,
+          city: st.city,
+          stationName: st.name
+        });
+        laravel.updateStationData(st.id, {
+          aqi: live.aqi,
+          status: live.status,
+          pm25: live.pm25,
+          updatedAt: 'Live (Synchronized)',
+          source: live.attribution,
+          description: `Live synchronized with ${live.attribution}. Weather: ${live.weather?.tempC || 25}°C, ${live.weather?.humidity || 96}% humidity.`
+        });
+      }
+    }
+    officialStations.value = await laravel.getOfficialStations(true);
+    showToast('All Sarawak monitoring stations updated with live feed data!');
+  } catch (err) {
+    showToast(`Sync failed: ${err.message}`);
+  }
 }
 
 function handleRecalculateDBSCAN({ epsKm, minSamples }) {

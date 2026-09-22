@@ -28,12 +28,17 @@ Official air quality monitoring stations can often be sparse or slow to reflect 
 
 ## Key Features
 
-* **Interactive Haze Map:** A dynamic frontend interface displaying live official stations and crowdsourced pins.
-* **Hyper-local Ground-Truth Reporting:** Users can submit reports detailing visibility levels, burning smells, symptoms, and descriptive accounts of local conditions.
-* **AI Sentiment & Panic Analysis:** Python FastAPI backend evaluates citizen reports using natural language processing to gauge community distress and urgency tiers.
-* **Geospatial Anomaly Detection:** Utilizes machine learning clustering algorithms (DBSCAN via scikit-learn) to identify localized pollution spikes that official government monitoring stations might miss.
-* **Lightning-Fast Geospatial Lookups:** Employs Redis geospatial indexing for sub-millisecond radius searches of user reports.
-* **Trusted Reporter Weighting:** Laravel backend manages user accounts, applying trust weightings to reports to ensure data reliability.
+* **Interactive Haze Map:** Dynamic frontend displaying live official stations, crowdsourced citizen reports, satellite fire hotspots, and animated wind trajectories.
+* **NASA FIRMS Active Hotspots Layer:** Real-time satellite fire detection overlay (VIIRS S-NPP / NOAA-20 & MODIS Terra/Aqua) with Fire Radiative Power (MW), brightness temperature (K), and transboundary smoke drift vectors from Kalimantan peat fires into Sarawak.
+* **Live Wind Vector & Smoke Drift Animation :** Meteorological wind stream vectors powered by NOAA GFS and Open-Meteo showing prevailing monsoon winds (e.g., Southwest Monsoon haze propagation into Kuching, Samarahan, and Sri Aman).
+* **24-Hour & 7-Day Air Quality Forecast Curve:** Interactive hourly air quality projections with peak warning windows, PM2.5/PM10 pollutant breakdowns, and day-by-day trajectory curves.
+* **MOE Malaysia School Action & Health Advisory:** Official Ministry of Education (KPM/MOE) SOP tracking: outdoor activities suspended at AQI > 100, full school closures triggered at AQI > 200, N95 mask guidelines, and vulnerable group recommendations.
+* **Ground Truth "Reality Check" Divergence Engine:** Quantifies the delta between stationary government sensors and neighborhood citizen reports to highlight sensor lag, humidity inversions, and local blindspots.
+* **PWA Offline Mode & Web Push Alerts:** Service Worker offline caching for air quality advisories and configurable browser push notifications when local AQI exceeds safety thresholds.
+* **Live IQAir & APIMS Sync Hub:** Live integration modal fetching real-time PM2.5 and AQI data for Kuching, Samarahan, Sri Aman, Sibu, Bintulu, and Miri.
+* **Hyper-local Ground-Truth Reporting:** Citizens submit reports with visibility distances, burning odors, acute symptoms, and photos.
+* **Geospatial Anomaly Detection (DBSCAN):** Identifies localized smoke clusters using density-based spatial clustering to catch micro-climate spikes missed by official stations.
+* **Social Sharing Card Generator:** Instant HTML5 Canvas card generator for sharing air quality alerts to WhatsApp, Telegram, X, and Facebook.
 
 ---
 

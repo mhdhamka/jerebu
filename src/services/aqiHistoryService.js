@@ -425,7 +425,7 @@ export function formatAqiHistoryToCsv(records, options = {}) {
   // CSV metadata comments (Excel/Pandas compatible or skippable)
   const metaHeader = [
     `# ----------------------------------------------------------------------------------`,
-    `# JEREBU WATCH - LOCAL AIR QUALITY INDEX (AQI) HISTORICAL DATASET`,
+    `# JEREBUAQI - LOCAL AIR QUALITY INDEX (AQI) HISTORICAL DATASET`,
     `# Area: ${areaName}`,
     `# Administrative Division: ${division}`,
     `# Time Range: ${timeRange}`,
@@ -495,7 +495,7 @@ function escapeCsvCell(value) {
 /**
  * Trigger browser file download with UTF-8 BOM
  */
-export function downloadCsvFile(csvString, filename = 'jerebu-watch-aqi-history.csv') {
+export function downloadCsvFile(csvString, filename = 'jerebuaqi-history.csv') {
   // \uFEFF is Byte Order Mark (BOM) ensuring Excel opens UTF-8 seamlessly without weird characters
   const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

@@ -20,8 +20,31 @@
     </div>
 
     <!-- Right Controls: Master Hub Dropdown Toggle -->
-    <div class="relative flex items-center gap-3">
+    <div class="relative flex items-center gap-2">
       
+      <!-- MOE School Action Pill -->
+      <button
+        type="button"
+        @click="$emit('open-moe-modal')"
+        class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+        :class="maxAqi > 200 ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-300' : maxAqi > 100 ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'"
+        title="View Ministry of Education (MOE) Malaysia Haze SOP"
+      >
+        <span class="text-sm">🏫</span>
+        <span>MOE: <strong class="font-extrabold">{{ moeStatusText }}</strong></span>
+      </button>
+
+      <!-- Live Feed Sync Trigger Button -->
+      <button
+        type="button"
+        @click="$emit('open-sync-modal')"
+        class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all cursor-pointer shadow-xs active:scale-95"
+        title="Sync Live AQI from IQAir / DOE Malaysia"
+      >
+        <span class="hidden sm:inline font-bold">Live Sync</span>
+        <span class="text-[10px] px-1.5 py-0.2 bg-emerald-200/70 dark:bg-emerald-800/80 rounded font-mono font-black text-emerald-900 dark:text-emerald-200">IQAir</span>
+      </button>
+
       <!-- Quick Regional Pill Preview (Styled like the map marker card) -->
       <div class="hidden md:flex flex-col items-center justify-center px-3.5 py-1 bg-orange-500 text-white rounded-xl shadow-sm border border-orange-400 text-center leading-tight">
         <span class="text-[9px] uppercase tracking-wider font-bold opacity-90">Regional Avg</span>
@@ -60,7 +83,7 @@
       >
         <div 
           v-if="isMenuOpen" 
-          class="absolute right-0 top-12 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-4 sm:p-5 z-50 flex flex-col gap-4 text-slate-700 dark:text-slate-200"
+          class="absolute right-0 top-12 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-4 sm:p-5 z-50 flex flex-col gap-3.5 text-slate-700 dark:text-slate-200"
         >
           <!-- Section 1: Regional Metrics Overview -->
           <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-xl p-3 flex flex-col gap-2.5">
@@ -84,9 +107,64 @@
             </div>
           </div>
 
-          <!-- Section 2: Persona & Preferences -->
-          <div class="flex flex-col gap-2">
-            <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Persona (Laravel Auth)</label>
+          <!-- Section 2: Core Intelligence Features -->
+          <div class="space-y-1.5">
+            <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Haze Intelligence & Action</div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <!-- 24h & 7d Forecast Button -->
+              <button
+                type="button"
+                @click="$emit('open-forecast-modal'); isMenuOpen = false;"
+                class="p-2.5 rounded-xl border border-orange-200/80 dark:border-orange-800/80 bg-orange-50/50 dark:bg-orange-950/30 text-left hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-all cursor-pointer"
+              >
+                <div class="text-xs font-bold text-orange-900 dark:text-orange-200 flex items-center gap-1.5">
+                  <span>AQI Forecast</span>
+                </div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">24h & 7d Dispersion</div>
+              </button>
+
+              <!-- MOE School SOP Button -->
+              <button
+                type="button"
+                @click="$emit('open-moe-modal'); isMenuOpen = false;"
+                class="p-2.5 rounded-xl border border-red-200/80 dark:border-red-800/80 bg-red-50/50 dark:bg-red-950/30 text-left hover:bg-red-100 dark:hover:bg-red-900/50 transition-all cursor-pointer"
+              >
+                <div class="text-xs font-bold text-red-900 dark:text-red-200 flex items-center gap-1.5">
+                  <span>MOE SOP</span>
+                </div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">School Guidelines</div>
+              </button>
+
+              <!-- Divergence Reality Check Button -->
+              <button
+                type="button"
+                @click="$emit('open-divergence-modal'); isMenuOpen = false;"
+                class="p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/80 bg-amber-50/50 dark:bg-amber-950/30 text-left hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all cursor-pointer"
+              >
+                <div class="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                  <span>Reality Check</span>
+                </div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Sensor vs. Ground</div>
+              </button>
+
+              <!-- Alerts & PWA Settings Button -->
+              <button
+                type="button"
+                @click="$emit('open-notification-modal'); isMenuOpen = false;"
+                class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-orange-400 transition-all cursor-pointer"
+              >
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <span>PWA & Alerts</span>
+                </div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Push & Install</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 3: Persona & Preferences -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Persona</label>
             <select
               :value="activeUser.id"
               @change="onUserChange($event.target.value)"
@@ -98,7 +176,7 @@
             </select>
           </div>
 
-          <!-- Section 3: Toggles & Utilities Grid -->
+          <!-- Section 4: Utilities Grid -->
           <div class="grid grid-cols-2 gap-2">
             <!-- Theme Toggle -->
             <button
@@ -138,11 +216,11 @@
               ]"
             >
               <span class="w-2 h-2 rounded-full" :class="isDbscanOpen ? 'bg-white' : 'bg-blue-500'"></span>
-              <span>Anomalies</span>
+              <span>DBSCAN Spikes Panel</span>
             </button>
           </div>
 
-          <!-- Section 4: Primary Action CTA -->
+          <!-- Section 5: Primary Action CTA -->
           <button
             @click="$emit('open-report-modal'); isMenuOpen = false;"
             class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-orange-600 dark:hover:bg-orange-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-1"
@@ -160,8 +238,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { TRUSTED_USERS } from '../data/initialReports.js';
+import { getMoeAdvisory } from '../services/moeAdvisoryService.js';
 
 const props = defineProps({
   officialCount: { type: Number, default: 0 },
@@ -169,19 +248,30 @@ const props = defineProps({
   anomalyCount: { type: Number, default: 0 },
   activeUser: { type: Object, required: true },
   isDbscanOpen: { type: Boolean, default: false },
-  isDark: { type: Boolean, default: false }
+  isDark: { type: Boolean, default: false },
+  maxAqi: { type: Number, default: 142 }
 });
 
 const emit = defineEmits([
   'toggle-dbscan',
   'open-report-modal',
   'open-export-modal',
+  'open-sync-modal',
+  'open-forecast-modal',
+  'open-moe-modal',
+  'open-divergence-modal',
+  'open-notification-modal',
   'switch-user',
   'toggle-theme'
 ]);
 
 const isMenuOpen = ref(false);
 const trustedUsers = TRUSTED_USERS;
+
+const moeStatusText = computed(() => {
+  const advisory = getMoeAdvisory(props.maxAqi);
+  return advisory.schoolBadge;
+});
 
 function onUserChange(userId) {
   const found = trustedUsers.find(u => u.id === userId);

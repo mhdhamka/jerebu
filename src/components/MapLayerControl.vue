@@ -216,6 +216,114 @@
             </button>
           </div>
         </div>
+
+        <!-- Layer 4: NASA FIRMS Satellite Fire Hotspots -->
+        <div
+          class="p-2.5 rounded-xl border transition-all duration-200 hover:border-rose-300 dark:hover:border-rose-700"
+          :class="[
+            modelValue.hotspots
+              ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200/80 dark:border-rose-800/60 shadow-xs'
+              : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/60 dark:border-slate-800/60 opacity-50'
+          ]"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div>
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>NASA FIRMS Hotspots</span>
+                </div>
+                <div class="text-[10px] text-rose-700 dark:text-rose-400 font-medium">
+                  VIIRS & MODIS Satellites ({{ hotspotCount }})
+                </div>
+              </div>
+            </div>
+
+            <!-- Sliding Switch -->
+            <button
+              type="button"
+              @click="toggleLayer('hotspots')"
+              class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="modelValue.hotspots ? 'bg-rose-600' : 'bg-slate-300 dark:bg-slate-700'"
+            >
+              <span
+                class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                :class="modelValue.hotspots ? 'translate-x-4' : 'translate-x-0'"
+              />
+            </button>
+          </div>
+        </div>
+
+        <!-- Layer 5: Live Wind Vector & Smoke Drift -->
+        <div
+          class="p-2.5 rounded-xl border transition-all duration-200 hover:border-cyan-300 dark:hover:border-cyan-700"
+          :class="[
+            modelValue.wind
+              ? 'bg-cyan-50/60 dark:bg-cyan-950/30 border-cyan-200/80 dark:border-cyan-800/60 shadow-xs'
+              : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/60 dark:border-slate-800/60 opacity-50'
+          ]"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div>
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>Wind & Smoke Drift</span>
+                </div>
+                <div class="text-[10px] text-cyan-700 dark:text-cyan-400 font-medium">
+                  {{ windDirection }} • {{ windSpeed }} km/h
+                </div>
+              </div>
+            </div>
+
+            <!-- Sliding Switch -->
+            <button
+              type="button"
+              @click="toggleLayer('wind')"
+              class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="modelValue.wind ? 'bg-cyan-600' : 'bg-slate-300 dark:bg-slate-700'"
+            >
+              <span
+                class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                :class="modelValue.wind ? 'translate-x-4' : 'translate-x-0'"
+              />
+            </button>
+          </div>
+        </div>
+
+        <!-- Layer 6: Reality Check (Sensor Divergence) -->
+        <div
+          class="p-2.5 rounded-xl border transition-all duration-200 hover:border-amber-300 dark:hover:border-amber-700"
+          :class="[
+            modelValue.divergence
+              ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-800/60 shadow-xs'
+              : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/60 dark:border-slate-800/60 opacity-50'
+          ]"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div>
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>Sensor Divergence</span>
+                </div>
+                <div class="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                  Reality Check Clusters ({{ divergenceCount }})
+                </div>
+              </div>
+            </div>
+
+            <!-- Sliding Switch -->
+            <button
+              type="button"
+              @click="toggleLayer('divergence')"
+              class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+              :class="modelValue.divergence ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'"
+            >
+              <span
+                class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                :class="modelValue.divergence ? 'translate-x-4' : 'translate-x-0'"
+              />
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Bottom Status & Actions -->
@@ -241,11 +349,15 @@ import { ref, computed } from 'vue';
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => ({ official: true, community: true, anomalies: true })
+    default: () => ({ official: true, community: true, anomalies: true, hotspots: true, wind: true, divergence: true })
   },
   officialCount: { type: Number, default: 0 },
   reportCount: { type: Number, default: 0 },
-  anomalyCount: { type: Number, default: 0 }
+  anomalyCount: { type: Number, default: 0 },
+  hotspotCount: { type: Number, default: 0 },
+  divergenceCount: { type: Number, default: 0 },
+  windSpeed: { type: Number, default: 14.5 },
+  windDirection: { type: String, default: 'SW' }
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -257,13 +369,16 @@ const activeLayerCount = computed(() => {
   if (props.modelValue.official) count++;
   if (props.modelValue.community) count++;
   if (props.modelValue.anomalies) count++;
+  if (props.modelValue.hotspots) count++;
+  if (props.modelValue.wind) count++;
+  if (props.modelValue.divergence) count++;
   return count;
 });
 
 const currentPreset = computed(() => {
-  const { official, community, anomalies } = props.modelValue;
-  if (official && community && anomalies) return 'all';
-  if (official && !community && !anomalies) return 'official';
+  const { official, community, anomalies, hotspots, wind, divergence } = props.modelValue;
+  if (official && community && anomalies && hotspots && wind && divergence) return 'all';
+  if (official && !community && !anomalies && !hotspots && !wind) return 'official';
   if (!official && community && !anomalies) return 'community';
   if (!official && !community && anomalies) return 'anomalies';
   return 'custom';
@@ -279,16 +394,16 @@ function toggleLayer(layerKey) {
 function setPreset(presetName) {
   switch (presetName) {
     case 'all':
-      emit('update:modelValue', { official: true, community: true, anomalies: true });
+      emit('update:modelValue', { official: true, community: true, anomalies: true, hotspots: true, wind: true, divergence: true });
       break;
     case 'official':
-      emit('update:modelValue', { official: true, community: false, anomalies: false });
+      emit('update:modelValue', { official: true, community: false, anomalies: false, hotspots: false, wind: false, divergence: false });
       break;
     case 'community':
-      emit('update:modelValue', { official: false, community: true, anomalies: false });
+      emit('update:modelValue', { official: false, community: true, anomalies: false, hotspots: false, wind: false, divergence: false });
       break;
     case 'anomalies':
-      emit('update:modelValue', { official: false, community: false, anomalies: true });
+      emit('update:modelValue', { official: false, community: false, anomalies: true, hotspots: true, wind: true, divergence: true });
       break;
   }
 }
@@ -297,7 +412,10 @@ function toggleAll(showAll) {
   emit('update:modelValue', {
     official: showAll,
     community: showAll,
-    anomalies: showAll
+    anomalies: showAll,
+    hotspots: showAll,
+    wind: showAll,
+    divergence: showAll
   });
 }
 </script>
