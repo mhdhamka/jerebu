@@ -1,6 +1,6 @@
 <div align="center">
 
-# Jerebu  
+# JerebuAQI
 
 > Crowdsourced Air Quality & Haze Tracker
 
@@ -22,7 +22,7 @@
 
 A community-driven, full-stack web application designed to track air quality and haze incidents across Southeast Asia, specifically inspired by the recurring haze affecting Sarawak, Malaysia, Borneo, and neighboring Kalimantan fire zones. 
 
-Official air quality monitoring stations can often be sparse or slow to reflect hyper-localized conditions. **Jerebu** solves this by empowering citizens to contribute real-time, ground-truth reports while leveraging advanced geospatial indexing and AI-driven anomaly detection.
+Official air quality monitoring stations can often be sparse or slow to reflect hyper-localized conditions. **JerebuAQI** solves this by empowering citizens to contribute real-time, ground-truth reports while leveraging advanced geospatial indexing and AI-driven anomaly detection.
 
 ---
 
@@ -78,7 +78,7 @@ uvicorn main:app --reload --port 8000
 ## Project Architecture
 
 ```text
-jerebu/
+JerebuAQI/
 ├── backend/
 │   ├── fastapi/           # Python AI Engine (DBSCAN clustering, NLP sentiment analysis)
 │   └── laravel/           # Laravel API gateway, controllers, and Redis services
@@ -125,6 +125,6 @@ Feel free to learn from, fork, and improve upon this project.
 
 If you found this project interesting, consider giving it a star!
 
-Made with ❤️ by mdhamka
+Developed & Maintained by mdhamka
 
 </div>

@@ -11,7 +11,7 @@
       </div>
       <div class="flex items-center">
         <h1 class="text-base sm:text-xl font-black tracking-tight text-slate-800 dark:text-white">
-          JER<span class="text-orange-500">EBU</span>
+          JEREBU<span class="text-orange-500">AQI</span>
         </h1>
         <span class="ml-2.5 px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold rounded uppercase tracking-wider hidden xs:inline-block border border-slate-200 dark:border-slate-700">
           Regional Beta
