@@ -211,7 +211,7 @@
 
         <!-- No Results Fallback -->
         <div v-else-if="query && !isGeocodingOnline" class="p-6 text-center text-slate-500 dark:text-slate-400">
-          <div class="text-2xl mb-1">📍</div>
+          <div class="text-2xl mb-1"></div>
           <div class="text-xs font-bold text-slate-700 dark:text-slate-200">No exact match found for "{{ query }}" in Sarawak</div>
           <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 max-w-xs mx-auto">
             Try searching for a major town (e.g. Sibu, Bintulu, Miri) or select a division chip above.
