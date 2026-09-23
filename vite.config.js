@@ -349,7 +349,7 @@ function liveSyncPlugin() {
 
 export default defineConfig(() => {
   return {
-    base: '/', 
+    base: '/jerebu/', 
     plugins: [vue(), tailwindcss(), liveSyncPlugin()],
     resolve: {
       alias: {
