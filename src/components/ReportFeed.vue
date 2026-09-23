@@ -13,7 +13,6 @@
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <!-- Close / Hide Button -->
           <button
             v-if="showCloseButton"
             @click="$emit('close')"
@@ -25,6 +24,46 @@
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- Quick Filter Pills (Text-only, no emojis) -->
+      <div class="px-3 pt-2.5 pb-1 flex items-center gap-1.5 overflow-x-auto bg-slate-50/60 dark:bg-slate-850/60 border-b border-slate-100 dark:border-slate-800 text-[10px] font-mono">
+        <button
+          type="button"
+          @click="activeFilter = 'all'"
+          :class="[
+            'px-2.5 py-1 rounded-lg border transition-colors cursor-pointer whitespace-nowrap font-bold',
+            activeFilter === 'all'
+              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100'
+              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+          ]"
+        >
+          ALL ({{ reports.length }})
+        </button>
+        <button
+          type="button"
+          @click="activeFilter = 'consensus'"
+          :class="[
+            'px-2.5 py-1 rounded-lg border transition-colors cursor-pointer whitespace-nowrap font-bold',
+            activeFilter === 'consensus'
+              ? 'bg-emerald-700 text-white border-emerald-700'
+              : 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 border-slate-200 dark:border-slate-700'
+          ]"
+        >
+          CONSENSUS VERIFIED ({{ verifiedCount }})
+        </button>
+        <button
+          type="button"
+          @click="activeFilter = 'critical'"
+          :class="[
+            'px-2.5 py-1 rounded-lg border transition-colors cursor-pointer whitespace-nowrap font-bold',
+            activeFilter === 'critical'
+              ? 'bg-orange-600 text-white border-orange-600'
+              : 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 border-slate-200 dark:border-slate-700'
+          ]"
+        >
+          CRITICAL (&gt;150 AQI)
+        </button>
       </div>
 
       <!-- Search Input -->
@@ -54,6 +93,32 @@
               : 'bg-white dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
           ]"
         >
+          <!-- Anti-Spoofing & Consensus Attestation Badge (Feature 8, Text-only) -->
+          <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800 text-[10px] font-mono">
+            <span
+              v-if="rep.consensusStatus === 'consensus_verified'"
+              class="px-2 py-0.5 rounded font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+            >
+              CONSENSUS VERIFIED [{{ rep.corroborationCount || 3 }} PEER SOURCES]
+            </span>
+            <span
+              v-else-if="rep.consensusStatus === 'suspicious'"
+              class="px-2 py-0.5 rounded font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+            >
+              UNVERIFIED [SPOOF RISK / LOW ACCURACY]
+            </span>
+            <span
+              v-else
+              class="px-2 py-0.5 rounded font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+            >
+              SINGLE SOURCE REPORT
+            </span>
+
+            <span v-if="rep.attestationHash" class="text-[9px] text-slate-400 font-mono">
+              SIG: {{ rep.attestationHash }}
+            </span>
+          </div>
+
           <!-- Header -->
           <div class="flex justify-between items-start">
             <div>
@@ -140,8 +205,8 @@
 
       <!-- Sleek Aside Footer -->
       <div class="p-3 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500 shrink-0">
-        <p class="font-medium text-slate-500 dark:text-slate-400">Powered by JerebuAQI</p>
-        <p class="text-slate-400 dark:text-slate-500 mt-0.5">Real-time air quality & hazard tracking</p>
+        <p class="font-medium text-slate-500 dark:text-slate-400 font-mono">Consensus Attestation Engine</p>
+        <p class="text-slate-400 dark:text-slate-500 mt-0.5">Sybil-resistant spatial peer verification</p>
       </div>
     </div>
   </aside>
@@ -158,14 +223,27 @@ const props = defineProps({
 defineEmits(['close', 'upvote', 'share']);
 
 const searchQuery = ref('');
+const activeFilter = ref('all');
+
+const verifiedCount = computed(() => {
+  return props.reports.filter(r => r.consensusStatus === 'consensus_verified').length;
+});
 
 const filteredReports = computed(() => {
-  if (!searchQuery.value.trim()) return props.reports;
+  let list = props.reports;
+
+  if (activeFilter.value === 'consensus') {
+    list = list.filter(r => r.consensusStatus === 'consensus_verified' || (r.corroborationCount && r.corroborationCount >= 2));
+  } else if (activeFilter.value === 'critical') {
+    list = list.filter(r => r.estimatedAqi >= 150);
+  }
+
+  if (!searchQuery.value.trim()) return list;
   const q = searchQuery.value.toLowerCase();
-  return props.reports.filter(r =>
-    r.areaName.toLowerCase().includes(q) ||
-    r.description.toLowerCase().includes(q) ||
-    r.reporterName.toLowerCase().includes(q) ||
+  return list.filter(r =>
+    (r.areaName || '').toLowerCase().includes(q) ||
+    (r.description || '').toLowerCase().includes(q) ||
+    (r.reporterName || '').toLowerCase().includes(q) ||
     (r.symptoms && r.symptoms.some(s => s.toLowerCase().includes(q)))
   );
 });

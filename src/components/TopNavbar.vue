@@ -1,8 +1,8 @@
 <template>
-  <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 shrink-0 shadow-sm z-30 select-none transition-colors duration-200 relative">
+  <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 shrink-0 shadow-sm z-50 select-none transition-colors duration-200 relative">
     
     <!-- Logo & Title -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 shrink-0">
       <!-- Modernized Haze Icon Container -->
       <div class="w-9 h-9 bg-gradient-to-br from-orange-400 to-amber-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0 ring-2 ring-orange-500/20">
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -19,8 +19,16 @@
       </div>
     </div>
 
+    <!-- Center: Integrated Sarawak Geolocation Search Bar -->
+    <div class="flex-1 max-w-sm sm:max-w-md lg:max-w-lg mx-2 sm:mx-6 z-40">
+      <SarawakSearchBar
+        @select-location="$emit('select-location', $event)"
+        @toast="$emit('toast', $event)"
+      />
+    </div>
+
     <!-- Right Controls: Master Hub Dropdown Toggle -->
-    <div class="relative flex items-center gap-2.5">
+    <div class="relative flex items-center gap-2.5 shrink-0">
       
       <!-- Quick Regional Pill Preview -->
       <div class="hidden md:flex flex-col items-center justify-center px-3.5 py-1 bg-orange-500 text-white rounded-xl shadow-sm border border-orange-400 text-center leading-tight">
@@ -235,6 +243,7 @@
 import { ref, computed } from 'vue';
 import { TRUSTED_USERS } from '../data/initialReports.js';
 import { getMoeAdvisory } from '../services/moeAdvisoryService.js';
+import SarawakSearchBar from './SarawakSearchBar.vue';
 
 const props = defineProps({
   officialCount: { type: Number, default: 0 },
@@ -256,7 +265,9 @@ const emit = defineEmits([
   'open-divergence-modal',
   'open-notification-modal',
   'switch-user',
-  'toggle-theme'
+  'toggle-theme',
+  'select-location',
+  'toast'
 ]);
 
 const isMenuOpen = ref(false);

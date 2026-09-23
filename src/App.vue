@@ -3,9 +3,9 @@
     
     <!-- Top Nav Command Bar -->
     <TopNavbar
-      :official-count="officialStations.length"
-      :report-count="reports.length"
-      :anomaly-count="activeAnomalyCount"
+      :official-count="stationStore.stations.length"
+      :report-count="reportStore.reports.length"
+      :anomaly-count="anomalyClusters.length"
       :active-user="activeUser"
       :is-dbscan-open="isRightPanelOpen && activeRightTab === 'dbscan'"
       :is-console-open="isRightPanelOpen && activeRightTab === 'console'"
@@ -22,20 +22,43 @@
       @open-divergence-modal="isDivergenceModalOpen = true"
       @open-notification-modal="isNotificationModalOpen = true"
       @switch-user="handleSwitchUser"
+      @select-location="handleSearchLocationSelected"
+      @toast="showToast"
     />
 
+    <!-- Offline Queue Status Banner -->
+    <div
+      v-if="reportStore.pendingOfflineCount > 0 || isOffline"
+      class="bg-amber-500 text-slate-950 px-4 py-1.5 text-xs font-bold flex items-center justify-between z-40 shadow-sm"
+    >
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-slate-950 animate-pulse"></span>
+        <span v-if="isOffline">Working in Offline Mode.</span>
+        <span v-if="reportStore.pendingOfflineCount > 0">
+          {{ reportStore.pendingOfflineCount }} report(s) saved in local IndexedDB. Will auto-sync when back online.
+        </span>
+      </div>
+      <button
+        v-if="!isOffline && reportStore.pendingOfflineCount > 0"
+        @click="handleManualSyncOffline"
+        class="px-2.5 py-0.5 rounded-lg bg-slate-950 text-white text-[11px] font-mono hover:bg-slate-900 cursor-pointer"
+      >
+        Sync Now
+      </button>
+    </div>
+
     <!-- Main Workspace Layout (3-Column Interactive Grid) -->
-    <main class="flex-1 flex overflow-hidden relative">
+    <main class="flex-1 flex min-w-0 min-h-0 w-full overflow-hidden relative">
       
       <!-- Left Sidebar: Live Community Feed Drawer -->
       <aside
         :class="[
-          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden',
-          isLeftFeedVisible ? 'w-full sm:w-88 border-r border-slate-200/80 dark:border-slate-800/80' : 'w-0 border-r-0'
+          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden flex flex-col min-h-0',
+          isLeftFeedVisible ? 'w-full sm:w-88 max-w-full border-r border-slate-200/80 dark:border-slate-800/80 shadow-lg' : 'w-0 border-r-0 pointer-events-none'
         ]"
       >
         <ReportFeed
-          :reports="reports"
+          :reports="reportStore.reports"
           :show-close-button="true"
           @close="isLeftFeedVisible = false"
           @upvote="handleUpvote"
@@ -43,29 +66,20 @@
         />
       </aside>
 
-      <!-- Center Section: Interactive Leaflet Map & Overlays -->
-      <section class="flex-1 relative bg-slate-100 dark:bg-slate-950 overflow-hidden h-full">
-        
-        <!-- Toggle Feed Pill (Visible when feed is collapsed on desktop) -->
-        <button
-          v-if="!isLeftFeedVisible"
-          @click="isLeftFeedVisible = true"
-          class="absolute top-4 left-4 z-[400] px-3.5 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 shadow-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
-        >
-          <svg class="w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-
+      <!-- Center Section: Interactive Leaflet Map & Overlays (Strictly respects bounds) -->
+      <section class="flex-1 min-w-0 min-h-0 w-full h-full relative bg-slate-100 dark:bg-slate-950 overflow-hidden">
         <HazeMap
-          :official-stations="officialStations"
-          :reports="reports"
+          ref="hazeMapRef"
+          :official-stations="stationStore.stations"
+          :reports="reportStore.reports"
           :anomaly-clusters="anomalyClusters"
-          :hotspots="nasaHotspots"
+          :hotspots="hotspotStore.allHotspots"
           :wind-data="liveWindData"
-          :divergences="sensorDivergences"
+          :divergences="stationStore.divergences"
           :is-picking-location="isPickingLocation"
           :is-dark="isDark"
+          :is-left-feed-visible="isLeftFeedVisible"
+          @toggle-feed="isLeftFeedVisible = !isLeftFeedVisible"
           @location-selected="handleLocationPicked"
           @cancel-pick="isPickingLocation = false"
           @share-report="handleShareReport"
@@ -77,7 +91,7 @@
           @refresh-firms="handleFirmsRefreshed"
         />
 
-        <!-- Modern Glowing Floating Action Button (FAB) -->
+        <!-- Floating Action Button (FAB) -->
         <div class="absolute bottom-6 right-6 z-[420]">
           <button
             type="button"
@@ -85,10 +99,7 @@
             class="group relative flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-full shadow-2xl shadow-orange-500/40 border border-orange-300/30 cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 select-none overflow-hidden"
             title="Report haze in your neighborhood (Press 'R')"
           >
-            <!-- Ambient Light Sweep Animation -->
             <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform"></div>
-
-            <!-- Plus Icon -->
             <svg class="relative w-5 h-5 text-white transform group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -98,45 +109,61 @@
 
       <!-- Right Sidebar: DBSCAN Anomaly Engine Console -->
       <aside
-        v-if="isRightPanelOpen && activeRightTab === 'dbscan'"
-        class="transition-all duration-300 ease-in-out z-30 shrink-0 h-full border-l border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl w-full sm:w-88 absolute lg:relative right-0 top-0 shadow-2xl lg:shadow-none"
+        :class="[
+          'transition-all duration-300 ease-in-out z-30 shrink-0 h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden flex flex-col min-h-0',
+          isRightPanelOpen ? 'w-full sm:w-96 max-w-full border-l border-slate-200/80 dark:border-slate-800/80 shadow-lg' : 'w-0 border-l-0 pointer-events-none'
+        ]"
       >
         <DBSCANAnomalyPanel
-          :anomalies="anomalyClusters"
-          :comparison-data="comparisonMetrics"
-          :panic-percentage="panicScore"
+          :active-tab="activeRightTab"
+          :anomaly-clusters="anomalyClusters"
+          :reports="reportStore.reports"
+          :official-stations="stationStore.stations"
+          :live-wind-data="liveWindData"
           @close="isRightPanelOpen = false; activeRightTab = null"
-          @recalculate-dbscan="handleRecalculateDBSCAN"
+          @switch-tab="activeRightTab = $event"
+          @recalculate="handleRecalculateDBSCAN"
+          @toast="showToast"
         />
       </aside>
     </main>
 
-    <!-- Modals & Feedback Overlays -->
+    <!-- Modals -->
     <ReportModal
       v-if="isReportModalOpen"
+      :is-open="isReportModalOpen"
       :active-user="activeUser"
       :initial-coords="pickedCoords"
       :initial-area-name="pickedAreaName"
+      :is-picking-location="isPickingLocation"
       @close="isReportModalOpen = false"
-      @submit-report="handleSubmitReport"
-      @request-map-pick="startMapPicker"
+      @start-picker="startMapPicker"
+      @submit="handleSubmitReport"
+      @toast="showToast"
     />
 
     <SocialShareModal
-      v-if="sharingReport"
+      v-if="!!sharingReport"
+      :is-open="!!sharingReport"
       :report="sharingReport"
       @close="sharingReport = null"
+      @toast="showToast"
     />
 
     <AqiHistoryExportModal
       v-if="isExportModalOpen"
+      :is-open="isExportModalOpen"
+      :reports="reportStore.reports"
+      :official-stations="stationStore.stations"
+      :anomalies="anomalyClusters"
       @close="isExportModalOpen = false"
       @downloaded="handleExportDownloaded"
     />
 
     <LiveAqiSyncModal
       v-if="isSyncModalOpen"
-      :stations="officialStations"
+      :is-open="isSyncModalOpen"
+      :official-stations="stationStore.stations"
       @close="isSyncModalOpen = false"
       @station-updated="handleStationUpdated"
       @sync-all="handleSyncAllStations"
@@ -145,38 +172,50 @@
 
     <AqiForecastModal
       v-if="isForecastModalOpen"
-      :stations="officialStations"
-      :initial-station-id="forecastStationId"
+      :is-open="isForecastModalOpen"
+      :station-id="forecastStationId"
+      :official-stations="stationStore.stations"
       @close="isForecastModalOpen = false"
+      @toast="showToast"
     />
 
     <MoeAdvisoryModal
       v-if="isMoeModalOpen"
-      :initial-station-id="moeStationId"
-      :stations="officialStations"
+      :is-open="isMoeModalOpen"
+      :station-id="moeStationId"
+      :official-stations="stationStore.stations"
       @close="isMoeModalOpen = false"
+      @toast="showToast"
     />
 
     <DivergenceModal
       v-if="isDivergenceModalOpen"
-      :stations="officialStations"
-      :reports="reports"
+      :is-open="isDivergenceModalOpen"
+      :divergences="stationStore.divergences"
+      :official-stations="stationStore.stations"
       @close="isDivergenceModalOpen = false"
+      @toast="showToast"
     />
 
     <NotificationSettingsModal
       v-if="isNotificationModalOpen"
+      :is-open="isNotificationModalOpen"
+      :official-stations="stationStore.stations"
       @close="isNotificationModalOpen = false"
       @toast="showToast"
     />
 
-    <!-- Modern Glass Toast Notification Banner -->
+    <!-- Toast Notification Banner -->
     <transition name="toast-slide">
       <div
         v-if="toastMessage"
         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[600] bg-slate-900/90 dark:bg-slate-900/95 text-white px-5 py-3 rounded-2xl shadow-2xl font-medium text-xs flex items-center gap-3 border border-slate-700/80 backdrop-blur-xl"
       >
-        <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold border border-emerald-500/30">✓</div>
+        <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold border border-emerald-500/30">
+          <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
         <span class="tracking-wide">{{ toastMessage }}</span>
       </div>
     </transition>
@@ -198,35 +237,51 @@ import MoeAdvisoryModal from './components/MoeAdvisoryModal.vue';
 import DivergenceModal from './components/DivergenceModal.vue';
 import NotificationSettingsModal from './components/NotificationSettingsModal.vue';
 
+// Pinia Stores
+import { useReportStore } from '@/src/stores/reportStore.js';
+import { useStationStore } from '@/src/stores/stationStore.js';
+import { useHotspotStore } from '@/src/stores/hotspotStore.js';
+import { useAnomalyStore } from '@/src/stores/anomalyStore.js';
+
+// Services
 import { laravel } from './services/laravelApi.js';
-import { redis } from './services/redisStore.js';
-import { fastapi } from './services/fastapiEngine.js';
 import { liveAqiSync } from './services/liveAqiSyncService.js';
-import { firmsService } from './services/nasaFirmsService.js';
 import { windService } from './services/windVectorService.js';
-import { divergenceEngine } from './services/divergenceService.js';
 import { pushService } from './services/pushNotificationService.js';
+import { offlineQueueService } from './services/offlineQueueService.js';
+import { geofenceAlertService } from './services/geofenceAlertService.js';
 
-const officialStations = ref([]);
-const reports = ref([]);
-const anomalyClusters = ref([]);
-const nasaHotspots = ref([]);
+const reportStore = useReportStore();
+const stationStore = useStationStore();
+const hotspotStore = useHotspotStore();
+const anomalyStore = useAnomalyStore();
+
 const liveWindData = ref(windService.getWindData());
-const sensorDivergences = ref([]);
+const isOffline = ref(!offlineQueueService.isOnline());
 
-// Dynamic state variables replacing previous hardcoded metrics
-const comparisonMetrics = ref({
-  govAqi: 124,
-  govPercentage: 60,
-  citizenAqi: 168,
-  citizenPercentage: 84
-});
-const panicScore = ref(78);
-
-// Default closed state on boot for both sidebars
+// Panel & modal state
 const isLeftFeedVisible = ref(false); 
 const isRightPanelOpen = ref(false); 
 const activeRightTab = ref(null); 
+const hazeMapRef = ref(null);
+
+// Ensure map continuously adjusts size smoothly during sidebar expand/collapse transitions
+watch([isLeftFeedVisible, isRightPanelOpen], () => {
+  let count = 0;
+  const interval = setInterval(() => {
+    if (hazeMapRef.value?.invalidateSize) {
+      hazeMapRef.value.invalidateSize();
+    }
+    count++;
+    if (count > 7) clearInterval(interval);
+  }, 50);
+});
+
+function handleSearchLocationSelected(loc) {
+  if (hazeMapRef.value?.handleLocationSelected) {
+    hazeMapRef.value.handleLocationSelected(loc);
+  }
+} 
 
 const isReportModalOpen = ref(false);
 const isExportModalOpen = ref(false);
@@ -246,6 +301,15 @@ const toastMessage = ref('');
 
 const activeUser = ref(laravel.activeUser);
 const isDark = ref(false);
+
+const anomalyClusters = computed(() => {
+  return anomalyStore.clusters.length > 0 ? anomalyStore.clusters : laravel.computeAnomalies();
+});
+
+const maxAqi = computed(() => {
+  if (!stationStore.stations.length) return 142;
+  return Math.max(...stationStore.stations.map(s => s.aqi || 0));
+});
 
 function initTheme() {
   const saved = localStorage.getItem('jerebu-theme');
@@ -271,15 +335,6 @@ function toggleTheme() {
   }
 }
 
-const activeAnomalyCount = computed(() => {
-  return anomalyClusters.value.filter(a => a.isAnomaly).length;
-});
-
-const maxAqi = computed(() => {
-  if (!officialStations.value.length) return 142;
-  return Math.max(...officialStations.value.map(s => s.aqi || 0));
-});
-
 function openForecastModal(stationId = null) {
   forecastStationId.value = stationId;
   isForecastModalOpen.value = true;
@@ -299,29 +354,24 @@ const handleKeydown = (e) => {
   }
 };
 
-watch([officialStations, reports], () => {
-  if (officialStations.value.length && reports.value.length) {
-    sensorDivergences.value = divergenceEngine.calculateDivergence(officialStations.value, reports.value);
-  }
+watch([() => stationStore.stations, () => reportStore.reports], () => {
+  stationStore.updateDivergences(reportStore.reports);
 }, { deep: true });
 
 onMounted(async () => {
   initTheme();
 
-  officialStations.value = await laravel.getOfficialStations();
-  reports.value = await laravel.getReports();
-  anomalyClusters.value = laravel.computeAnomalies();
-  nasaHotspots.value = firmsService.getHotspots();
-  sensorDivergences.value = divergenceEngine.calculateDivergence(officialStations.value, reports.value);
+  // Load stores in parallel
+  await Promise.all([
+    stationStore.fetchStations(),
+    reportStore.fetchReports(),
+    hotspotStore.fetchLiveHotspots(false)
+  ]);
 
-  // Background live NASA FIRMS satellite active fire update
-  firmsService.fetchLiveHotspots({ refresh: false }).then(res => {
-    if (res && res.hotspots && res.hotspots.length > 0) {
-      nasaHotspots.value = res.hotspots;
-    }
-  }).catch(() => {});
+  stationStore.updateDivergences(reportStore.reports);
+  anomalyStore.computeClusters(reportStore.reports, stationStore.stations);
 
-  // Background live wind update from Open-Meteo GFS
+  // Background live wind update from Open-Meteo
   windService.fetchLiveWind().then(w => {
     if (w) liveWindData.value = w;
   });
@@ -329,12 +379,40 @@ onMounted(async () => {
   // Background PWA push service setup
   pushService.init();
 
+  // Online / offline listeners
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
   window.addEventListener('keydown', handleKeydown);
+
+  // Setup auto-sync callback when connection returns
+  offlineQueueService.setupAutoSync(async () => {
+    const synced = await reportStore.syncOfflineQueue();
+    if (synced > 0) {
+      showToast(`Automatically synced ${synced} queued report(s) to server.`);
+    }
+  });
 });
 
 onUnmounted(() => {
+  window.removeEventListener('online', handleOnline);
+  window.removeEventListener('offline', handleOffline);
   window.removeEventListener('keydown', handleKeydown);
 });
+
+function handleOnline() {
+  isOffline.value = false;
+  showToast('Network online. Synchronizing data...');
+}
+
+function handleOffline() {
+  isOffline.value = true;
+  showToast('Network offline. Reports will queue in local storage.');
+}
+
+async function handleManualSyncOffline() {
+  const synced = await reportStore.syncOfflineQueue();
+  showToast(`Synced ${synced} offline report(s).`);
+}
 
 function toggleRightPanel(tab) {
   if (isRightPanelOpen.value && activeRightTab.value === tab) {
@@ -379,21 +457,25 @@ function handleLocationPicked(coords) {
 }
 
 function handleFirmsRefreshed(res) {
-  if (res && res.hotspots && res.hotspots.length > 0) {
-    nasaHotspots.value = res.hotspots;
+  if (res && res.hotspots) {
+    hotspotStore.allHotspots = res.hotspots;
   }
 }
 
 async function handleSubmitReport(formData) {
-  await laravel.submitReport(formData);
-  reports.value = await laravel.getReports();
-  anomalyClusters.value = laravel.computeAnomalies();
-  isReportModalOpen.value = false;
-  showToast('Ground report published & indexed into Redis GEO.');
+  try {
+    await reportStore.submitReport(formData);
+    isReportModalOpen.value = false;
+    stationStore.updateDivergences(reportStore.reports);
+    anomalyStore.computeClusters(reportStore.reports, stationStore.stations);
+    showToast('Ground report published & indexed.');
+  } catch (err) {
+    showToast(`Report queued: ${err.message || 'Saved offline'}`);
+  }
 }
 
-function handleUpvote(reportId) {
-  laravel.upvoteReport(reportId);
+async function handleUpvote(reportId) {
+  await reportStore.upvoteReport(reportId);
   showToast('Helpful report upvoted.');
 }
 
@@ -410,24 +492,13 @@ function openSyncModal() {
 }
 
 function handleStationUpdated({ stationId, updatedData }) {
-  const updated = laravel.updateStationData(stationId, updatedData);
-  if (updated) {
-    const idx = officialStations.value.findIndex(s => s.id === stationId);
-    if (idx !== -1) {
-      officialStations.value[idx] = { ...officialStations.value[idx], ...updatedData };
-      officialStations.value = [...officialStations.value];
-    }
-    if (stationId === 'MY_SWK_02') {
-      comparisonMetrics.value.govAqi = updatedData.aqi;
-      comparisonMetrics.value.govPercentage = Math.min(100, Math.round((updatedData.aqi / 300) * 100));
-    }
-  }
+  stationStore.updateStationAqi(stationId, updatedData.aqi, updatedData.status);
 }
 
 async function handleSyncAllStations() {
   showToast('Synchronizing all 10 Sarawak stations with live open atmospheric sensors...');
   try {
-    for (const st of officialStations.value) {
+    for (const st of stationStore.stations) {
       if (st.region === 'Sarawak') {
         const live = await liveAqiSync.fetchOpenStationFeed({
           lat: st.lat,
@@ -435,17 +506,9 @@ async function handleSyncAllStations() {
           city: st.city,
           stationName: st.name
         });
-        laravel.updateStationData(st.id, {
-          aqi: live.aqi,
-          status: live.status,
-          pm25: live.pm25,
-          updatedAt: 'Live (Synchronized)',
-          source: live.attribution,
-          description: `Live synchronized with ${live.attribution}. Weather: ${live.weather?.tempC || 25}°C, ${live.weather?.humidity || 96}% humidity.`
-        });
+        stationStore.updateStationAqi(st.id, live.aqi, live.status);
       }
     }
-    officialStations.value = await laravel.getOfficialStations(true);
     showToast('All Sarawak monitoring stations updated with live feed data!');
   } catch (err) {
     showToast(`Sync failed: ${err.message}`);
@@ -453,7 +516,8 @@ async function handleSyncAllStations() {
 }
 
 function handleRecalculateDBSCAN({ epsKm, minSamples }) {
-  anomalyClusters.value = laravel.computeAnomalies(epsKm, minSamples);
+  anomalyStore.setParams(epsKm, minSamples);
+  anomalyStore.computeClusters(reportStore.reports, stationStore.stations);
   showToast(`DBSCAN re-clustered with eps=${epsKm}km, min_samples=${minSamples}`);
 }
 

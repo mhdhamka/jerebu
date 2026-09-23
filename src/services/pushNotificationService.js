@@ -82,7 +82,7 @@ export class PushNotificationService {
       return false;
     }
 
-    const title = `⚠️ Haze Alert: ${stationName} crossed ${this.config.thresholdAqi} AQI`;
+    const title = `[HAZE ALERT] ${stationName} crossed ${this.config.thresholdAqi} AQI`;
     const options = {
       body: `Current reading: ${aqi} AQI (Unhealthy). MOE Advisory: School outdoor sports suspended. N95 advised.`,
       icon: '/icon-192.png',

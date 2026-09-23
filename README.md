@@ -15,29 +15,31 @@
   <b>An environmental intelligence platform bridging official government air quality monitoring with neighborhood ground-truth observations, real-time satellite fire detection, and live aerodynamic wind dispersion across Sarawak, Malaysia, and Borneo.</b>
 </p>
 
-[Live Interactive App](https://ais-dev-3pktkrobvepmt7onwapmqj-354464200123.asia-southeast1.run.app) · [ Interactive Readme Sandbox](#-interactive-system-architecture--pipeline) · [MOE School SOP Calculator](#-interactive-moe-malaysia-school-action-calculator) · [NASA FIRMS Inspector](#-nasa-firms-active-fire-satellite-overlay) · [API Playground](#-interactive-api-sandbox--curl-recipes)
+[Open Live Web App](https://mhdhamka.github.io/jerebu/) · [Architecture](#system-architecture) · [MOE SOP Guide](#moe-calculator) · [NASA FIRMS](#nasa-firms) · [Wind & Drift](#wind-drift) · [⚡ Reality Check](#reality-check) · [🧪 API Sandbox](#api-sandbox) · [💻 Quickstart](#quickstart)
 
 </div>
 
 ---
 
+<a id="persona-selector"></a>
 ## Interactive Persona & Scenario Selector
 
 <details open>
 <summary><b>👉 Choose your operational persona to jump directly to relevant documentation</b></summary>
 <br>
 
-| Role | Primary Objective | Direct Section Link |
-| :--- | :--- | :--- |
-| **School Administrator / Teacher** | Check immediate MOE school closure triggers (AQI > 200) and outdoor activity bans (AQI > 100). | [MOE School Closure Calculator](#-interactive-moe-malaysia-school-action-calculator) |
-| **Disaster Responder / Resident** | Inspect neighborhood air quality, odor spikes, visibility, and verify reality check divergences. | [Reality Check Divergence Engine](#-ground-truth-reality-check-divergence-engine) |
-| **Atmospheric Scientist / Meteorologist** | Track NASA VIIRS/MODIS fire radiative power (FRP) and Open-Meteo wind dispersion vectors. | [Wind Drift & Satellite Telemetry](#-open-meteo-live-wind-vectors--smoke-drift-modeling) |
-| **Full-Stack / DevOps Engineer** | Review Redis geospatial sets, FastAPI DBSCAN clustering, and run local curl sandbox commands. | [System Architecture & Local Setup](#-system-architecture--topological-flow) |
+| Role | Primary Objective | Direct Documentation Link | Live Web App Tool |
+| :--- | :--- | :--- | :---: |
+| **School Administrator / Teacher** | Check immediate MOE school closure triggers (AQI > 200) and outdoor activity bans (AQI > 100). | [MOE School Closure Calculator](#moe-calculator) | [Open Live MOE SOP ↗](https://mhdhamka.github.io/jerebu/) |
+| **Disaster Responder / Resident** | Inspect neighborhood air quality, odor spikes, visibility, and verify reality check divergences. | [Reality Check Divergence Engine](#reality-check) | [Open Live Ground Feed ↗](https://mhdhamka.github.io/jerebu/) |
+| **Atmospheric Scientist / Meteorologist** | Track NASA VIIRS/MODIS fire radiative power (FRP) and Open-Meteo wind dispersion vectors. | [Wind Drift & Satellite Telemetry](#wind-drift) | [Open NASA Hotspots ↗](https://mhdhamka.github.io/jerebu/) |
+| **Full-Stack / DevOps Engineer** | Review Redis geospatial sets, FastAPI DBSCAN clustering, and run local curl sandbox commands. | [System Architecture & Local Setup](#system-architecture) | [Open API Sandbox ↗](#api-sandbox) |
 
 </details>
 
 ---
 
+<a id="smoke-corridor"></a>
 ## Transboundary Atmospheric Smoke Corridor
 
 ```text
@@ -69,7 +71,10 @@
 
 ---
 
+<a id="system-architecture" name="system-architecture"></a>
 ## System Architecture & Topological Flow
+
+> **Interactive Architecture Flow:** Review the full ingestion and analytical topology below, or [launch the live application ↗](https://mhdhamka.github.io/jerebu/) to observe real-time telemetry processing in action.
 
 <details open>
 <summary><b>Click to expand the 4-Tier Distributed Architecture Diagram</b></summary>
@@ -116,7 +121,10 @@
 
 ---
 
+<a id="moe-calculator" name="moe-calculator"></a>
 ## Interactive MOE Malaysia School Action Calculator
+
+> **Live SOP Interactive Tool:** Try the live interactive MOE School SOP Calculator across all Sarawak monitoring stations inside the [Live Web App ↗](https://mhdhamka.github.io/jerebu/).
 
 Under the **Ministry of Education Malaysia (KPM) Circular Ref: Surat Pekeliling Ikhtisas Bil. 1/2019**, clear statutory triggers govern school activities during transboundary haze:
 
@@ -132,6 +140,21 @@ Under the **Ministry of Education Malaysia (KPM) Circular Ref: Surat Pekeliling 
 | **201 – 300** | 🟣 **Very Unhealthy** | **IMMEDIATE SCHOOL CLOSURE**. Principals are authorized to immediately order closure without prior state approval and shift to online learning (PdPR). | Avoid all outdoor presence. N95/KN95 respirators mandatory for essential outdoor trips. Air purifiers active. | `FULL CLOSURE TRIGGER` |
 | **> 300** | 🟤 **Hazardous** | All educational institutions, kindergartens, and tuition centers shut down. Emergency staff work from home. | Severe health risk for all demographics. Stay strictly in air-filtered indoor environments. | `EMERGENCY HAZARDOUS` |
 
+</details>
+
+<details open>
+<summary><b>Interactive Scenario Simulator (Click any scenario below to test outcomes)</b></summary>
+<br>
+
+* **Scenario A: Official AQI 42 (Kuching City Center)**
+  * *Status:* 🟢 **Good**
+  * *Action:* Normal school operations. Full outdoor sports and morning assemblies permitted.
+* **Scenario B: Official AQI 128 (Sri Aman Sports Complex)**
+  * *Status:* 🟠 **Unhealthy**
+  * *Action:* ⚠️ **Outdoor Activities Halted**. Physical education moved to indoor classrooms. High-risk students monitored.
+* **Scenario C: Official AQI 165, Ground Truth Reports 215 (Senadin, Miri Peat Fire)**
+  * *Status:* 🟣 **Very Unhealthy Divergence**
+  * *Action:* 🚨 **School Closure Trigger (PdPR)**. Even if official elevated station lags, verified crowdsourced ground reading $\ge 200$ triggers immediate administrative caution.
 
 </details>
 
@@ -151,7 +174,10 @@ $$\text{Decision} = \begin{cases}
 
 ---
 
+<a id="nasa-firms" name="nasa-firms"></a>
 ## NASA FIRMS Active Fire Satellite Overlay
+
+> **Live Satellite Heatmap:** Toggle active VIIRS (375m) and MODIS (1km) thermal fire detections with real-time Fire Radiative Power (MW) directly on the [Live Interactive Map ↗](https://mhdhamka.github.io/jerebu/).
 
 JerebuAQI ingests Near-Real-Time active fire data directly from **NASA EOSDIS FIRMS (Fire Information for Resource Management System)**.
 
@@ -180,7 +206,10 @@ JerebuAQI ingests Near-Real-Time active fire data directly from **NASA EOSDIS FI
 
 ---
 
+<a id="wind-drift" name="wind-drift"></a>
 ## Open-Meteo Live Wind Vectors & Smoke Drift Modeling
+
+> **Live Wind Vectors:** View animated wind streamlines and aerodynamic smoke drift cones directly on the [Live Interactive Leaflet Map ↗](https://mhdhamka.github.io/jerebu/).
 
 Wind conditions dictate whether peat fire emissions disperse harmlessly into ocean waters or funnel into the Kuching-Samarahan-Sri Aman corridor.
 
@@ -206,7 +235,10 @@ $$T_{\text{transit}} = \frac{D}{V_{\text{wind\_speed}}}$$
 
 ---
 
+<a id="reality-check" name="reality-check"></a>
 ## Ground Truth "Reality Check" Divergence Engine
+
+> **Live Divergence Inspector:** Discover why official rooftop stations diverge from real-time ground-level smoke by opening the [Live Reality Check Modal in the App ↗](https://mhdhamka.github.io/jerebu/).
 
 Why do official government AQI readings sometimes show **Moderate (75 AQI)** while people on the street smell acrid burning smoke and report stinging eyes?
 
@@ -238,6 +270,7 @@ Why do official government AQI readings sometimes show **Moderate (75 AQI)** whi
 
 ---
 
+<a id="dbscan-clustering" name="dbscan-clustering"></a>
 ## FastAPI DBSCAN Spatial Clustering & NLP Panic Scoring
 
 <details>
@@ -263,9 +296,10 @@ $$\text{Weight}(u) = \begin{cases}
 
 ---
 
+<a id="api-sandbox" name="api-sandbox"></a>
 ## Interactive API Sandbox & cURL Recipes
 
-You can test every live endpoint locally using your terminal or API client. Click on any section below to copy ready-to-run cURL commands:
+> **Local API Playground:** You can test every live endpoint locally using your terminal or API client. Click on any section below to copy ready-to-run cURL commands:
 
 <details open>
 <summary><b>1. NASA FIRMS Active Hotspots Endpoint (VIIRS & MODIS)</b></summary>
@@ -367,6 +401,7 @@ curl -X POST "http://localhost:3000/api/reports" \
 
 ---
 
+<a id="quickstart" name="quickstart"></a>
 ## Local Development Quickstart
 
 <details open>
@@ -406,22 +441,24 @@ uvicorn main:app --reload --port 8000
 
 ---
 
+<a id="feature-matrix" name="feature-matrix"></a>
 ## Comprehensive Feature Verification Matrix
 
-| Feature Module | Implementation Status | Telemetry Source | Visual Animation |
-| :--- | :---: | :--- | :--- |
-| **Interactive Leaflet Haze Map** | ✅ Operational | OpenStreetMap / CartoDB Dark | Smooth Pan, Smooth Zoom, Bounds Fit |
-| **Flowing Wind Streamlines** | ✅ Operational | Open-Meteo GFS (10m) | CSS Dash-Offset `@keyframes wind-flow` |
-| **NASA FIRMS Active Fire Layer** | ✅ Operational | VIIRS (375m) & MODIS (1km) | Multi-ring `@keyframes thermal-flare` |
-| **Smoke Drift Dispersion Plumes** | ✅ Operational | Wind Vector Trajectory Model | Directional Polygons & `@keyframes smoke-drift-wave` |
-| **MOE School SOP Action Hub** | ✅ Operational | KPM Bil. 1/2019 Circular | Live Trigger Modal & AQI Badges |
-| **Reality Check Divergence** | ✅ Operational | Official vs Citizen Reports | Expanding Sonar Echo `@keyframes radar-echo` |
-| **DBSCAN Anomaly Clustering** | ✅ Operational | Scikit-Learn Spatial Density | Density Halos & Noise Filtering |
-| **Social Share Card Generator** | ✅ Operational | HTML5 Canvas Rendering | Instant PNG Generation & Web Share API |
-| **In-App Interactive Readme** | ✅ Operational | Vue 3 Reactive Sandbox | Live Slider Math & Real-Time Payloads |
+| Feature Module | Telemetry Source | Visual Animation |
+| :--- | :--- | :--- |
+| **Interactive Leaflet Haze Map** | OpenStreetMap / CartoDB Dark | Smooth Pan, Smooth Zoom, Bounds Fit |
+| **Flowing Wind Streamlines** | Open-Meteo GFS (10m) | CSS Dash-Offset `@keyframes wind-flow` |
+| **NASA FIRMS Active Fire Layer** | VIIRS (375m) & MODIS (1km) | Multi-ring `@keyframes thermal-flare` |
+| **Smoke Drift Dispersion Plumes** | Wind Vector Trajectory Model | Directional Polygons & `@keyframes smoke-drift-wave` |
+| **MOE School SOP Action Hub** | KPM Bil. 1/2019 Circular | Live Trigger Modal & AQI Badges |
+| **Reality Check Divergence** | Official vs Citizen Reports | Expanding Sonar Echo `@keyframes radar-echo` |
+| **DBSCAN Anomaly Clustering** | Scikit-Learn Spatial Density | Density Halos & Noise Filtering |
+| **Social Share Card Generator** | HTML5 Canvas Rendering | Instant PNG Generation & Web Share API |
+| **Interactive Live App Experience** | Vue 3.5 + Leaflet 1.9 | Real-Time Telemetry & Instant Sync |
 
 ---
 
+<a id="contributing" name="contributing"></a>
 ## Contributing
 
 Contributions, feedback, and regional sensor integrations are warmly welcomed!

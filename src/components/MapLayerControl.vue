@@ -25,7 +25,7 @@
           {{ activeLayerCount }}
         </span>
       </div>
-      <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono font-medium">({{ activeLayerCount }}/3)</span>
+      <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono font-medium">({{ activeLayerCount }}/{{ totalLayersCount }})</span>
     </button>
 
     <!-- Expanded Control Panel -->
@@ -35,7 +35,7 @@
         <div class="flex items-center gap-2.5">
           <div>
             <h3 class="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-tight">Map Layer Controls</h3>
-            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ activeLayerCount }} of 3 layers active</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ activeLayerCount }} of {{ totalLayersCount }} layers active</span>
           </div>
         </div>
         <button
@@ -363,6 +363,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const isExpanded = ref(false);
+const totalLayersCount = 6;
 
 const activeLayerCount = computed(() => {
   let count = 0;

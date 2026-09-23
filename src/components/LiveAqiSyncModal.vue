@@ -1,7 +1,11 @@
 <template>
-  <div class="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md select-none overflow-y-auto">
+  <div 
+    v-if="isOpen"
+    class="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md select-none overflow-y-auto cursor-pointer"
+    @click="$emit('close')"
+  >
     <div 
-      class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col my-auto transition-colors"
+      class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col my-auto transition-colors cursor-default"
       @click.stop
     >
       <!-- Modal Header -->
@@ -20,14 +24,16 @@
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              Integrate live IQAir and Malaysian Department of Environment (DOE) feeds
+              Optional live synchronization for IQAir and Malaysian DOE station feeds
             </p>
           </div>
         </div>
 
         <button 
+          type="button"
           @click="$emit('close')"
-          class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          title="Close dialog (or click outside)"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -354,11 +360,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { liveAqiSync } from '../services/liveAqiSyncService.js';
 import { getAQIColor } from '../data/officialStations.js';
 
 const props = defineProps({
+  isOpen: { type: Boolean, default: true },
   stations: { type: Array, default: () => [] }
 });
 
@@ -368,6 +375,12 @@ const activeOption = ref(2); // Default to Option 2 (zero config)
 const isLoading = ref(false);
 const errorMessage = ref('');
 const latestResult = ref(null);
+
+function handleKeydown(e) {
+  if (e.key === 'Escape') {
+    emit('close');
+  }
+}
 
 const selectedStationId = ref('MY_SWK_02'); // Kuching City (APIMS)
 const iqairUrl = ref('https://www.iqair.com/air-quality/malaysia/sarawak/kuching');
@@ -393,7 +406,12 @@ const aqiCardGradient = computed(() => {
 
 // Auto-run Option 2 on mount so the user immediately sees live data
 onMounted(async () => {
+  window.addEventListener('keydown', handleKeydown);
   await fetchOption2();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 // OPTION 2

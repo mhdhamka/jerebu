@@ -176,12 +176,15 @@
                 />
               </div>
 
-              <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+              <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
                 <div class="flex items-center gap-3">
-                  <span>Latitude: <strong class="text-slate-700 font-semibold">{{ form.lat.toFixed(4) }}</strong></span>
-                  <span>Longitude: <strong class="text-slate-700 font-semibold">{{ form.lng.toFixed(4) }}</strong></span>
+                  <span>LAT: <strong class="text-slate-800 font-semibold">{{ form.lat.toFixed(4) }}</strong></span>
+                  <span>LNG: <strong class="text-slate-800 font-semibold">{{ form.lng.toFixed(4) }}</strong></span>
                 </div>
-                <span class="text-[10px] text-slate-400">Indexed into Redis GEO: <code class="text-orange-600">haze:reports:geo</code></span>
+                <span v-if="gpsAccuracy" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                  GPS ACCURACY: ±{{ Math.round(gpsAccuracy) }}M [PLOD VALIDATED]
+                </span>
+                <span v-else class="text-[10px] text-slate-400">REDIS GEO: <code class="text-orange-600">haze:reports:geo</code></span>
               </div>
             </div>
           </div>
@@ -555,6 +558,8 @@ function startMapPicker() {
   emit('request-map-pick');
 }
 
+const gpsAccuracy = ref(null);
+
 function locateWithGPS() {
   if (!navigator.geolocation) {
     alert('Geolocation is not supported by your browser.');
@@ -567,6 +572,8 @@ function locateWithGPS() {
     (position) => {
       form.lat = position.coords.latitude;
       form.lng = position.coords.longitude;
+      gpsAccuracy.value = position.coords.accuracy || 20;
+      form.gpsAccuracy = gpsAccuracy.value;
       form.areaName = `Current Location (${position.coords.latitude.toFixed(3)}, ${position.coords.longitude.toFixed(3)})`;
       isLocatingGPS.value = false;
       gpsStatusText.value = 'GPS Tagged';

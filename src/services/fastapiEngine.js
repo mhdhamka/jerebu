@@ -277,3 +277,5 @@ class FastAPIEngine {
 }
 
 export const fastapi = new FastAPIEngine();
+export const fastapiEngine = fastapi;
+export { FastAPIEngine };
