@@ -50,7 +50,6 @@
         </div>
 
         <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Live Model Feed (Updated Hourly)</span>
         </div>
       </div>

@@ -326,7 +326,6 @@
           <div class="p-3 bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/60 rounded-2xl space-y-2 shrink-0">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                 <span class="text-xs font-bold text-slate-900 dark:text-white">NASA FIRMS Engine</span>
               </div>
               <span class="text-[10px] font-mono font-bold text-rose-600 dark:text-rose-400">
