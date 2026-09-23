@@ -14,7 +14,7 @@ import { redis } from './redisStore.js';
 import { fastapi } from './fastapiEngine.js';
 
 // Base URL configuration for Render backend vs Localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jerebu.onrender.com';
 
 class LaravelApiService {
   constructor() {
