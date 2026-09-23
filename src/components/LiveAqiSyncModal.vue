@@ -49,8 +49,7 @@
             ]"
           >
             <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Option 2: Open Feed</span>
+              <span>Option 1: Open Feed</span>
             </span>
             <span class="text-[10px] font-normal text-emerald-600 dark:text-emerald-400 font-semibold">Zero-Config (Instant)</span>
           </button>
@@ -66,8 +65,7 @@
             ]"
           >
             <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-              <span>Option 3: IQAir Scraper</span>
+              <span>Option 2: IQAir Scraper</span>
             </span>
             <span class="text-[10px] font-normal text-orange-600 dark:text-orange-400 font-semibold">URL Snapshot Parser</span>
           </button>
@@ -83,8 +81,7 @@
             ]"
           >
             <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-              <span>Option 1: IQAir API</span>
+              <span>Option 3: IQAir API</span>
             </span>
             <span class="text-[10px] font-normal text-blue-600 dark:text-blue-400 font-semibold">Official API Key</span>
           </button>

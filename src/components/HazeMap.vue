@@ -180,16 +180,11 @@
         class="flex items-center gap-2 p-1.5 pl-3 pr-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-rose-200/90 dark:border-rose-900/80 rounded-2xl shadow-2xl text-xs"
       >
         <div class="flex items-center gap-2 cursor-pointer select-none" @click="isFirmsHudExpanded = true">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-          </span>
           <span class="font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
-            <span>🛰️</span>
             <span>NASA FIRMS</span>
           </span>
           <span class="font-bold text-slate-700 dark:text-slate-200">
-            {{ visibleHotspotsCount }} Active Fires
+            {{ visibleHotspotsCount }} Active Hotspots
           </span>
           <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300">
             {{ totalVisibleFrp }} MW
@@ -238,7 +233,11 @@
         <!-- Header with minimize -->
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
           <div class="flex items-center gap-2">
-            <span class="text-base">🛰️</span>
+            <div class="w-7 h-7 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
             <div>
               <div class="font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                 NASA FIRMS Satellite Overlay
@@ -261,7 +260,7 @@
         <!-- Quick Stats Grid -->
         <div class="grid grid-cols-3 gap-2 text-center">
           <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-            <div class="text-[10px] uppercase font-bold text-slate-400">Active Fires</div>
+            <div class="text-[10px] uppercase font-bold text-slate-400">Active Hotspots</div>
             <div class="text-sm font-black text-rose-600 dark:text-rose-400 font-mono">{{ visibleHotspotsCount }}</div>
           </div>
           <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
@@ -353,8 +352,8 @@
           </div>
 
           <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1">
-              <span>🌐</span> NASA Satellite Thermal Layer (WMS)
+            <span class="text-slate-700 dark:text-slate-300 font-medium">
+              NASA Satellite Thermal Layer (WMS)
             </span>
             <button
               type="button"
@@ -418,7 +417,11 @@
         <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 text-slate-800 dark:text-slate-100 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2">
-              <span class="text-xl">🛰️</span>
+              <div class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+              </div>
               <div>
                 <h3 class="font-bold text-base text-slate-900 dark:text-white">NASA FIRMS API Key</h3>
                 <p class="text-xs text-slate-500">Configure Earthdata credentials or use free feed</p>
@@ -580,7 +583,7 @@ const apiKeyMasked = computed(() => {
 async function triggerFirmsSync() {
   if (isFirmsSyncing.value) return;
   isFirmsSyncing.value = true;
-  emit('toast', '🛰️ Fetching live NASA FIRMS active fire satellite data...');
+  emit('toast', 'Fetching live NASA FIRMS active fire satellite data...');
   try {
     const res = await firmsService.fetchLiveHotspots({
       sensor: hotspotFilters.value.sensor,
@@ -588,7 +591,7 @@ async function triggerFirmsSync() {
       refresh: true
     });
     emit('refresh-firms', res);
-    emit('toast', `🔥 Synced: ${res.hotspots?.length || 0} active hotspots from NASA FIRMS`);
+    emit('toast', `Synced: ${res.hotspots?.length || 0} active hotspots from NASA FIRMS`);
   } catch (err) {
     emit('toast', `NASA FIRMS notice: ${err.message}`);
   } finally {
@@ -611,7 +614,7 @@ function toggleGibsWmsLayer() {
     }
     if (!map.hasLayer(gibsWmsLayer)) {
       map.addLayer(gibsWmsLayer);
-      emit('toast', '🌐 NASA Satellite Thermal (WMS) tile layer activated');
+      emit('toast', 'NASA Satellite Thermal (WMS) tile layer activated');
     }
   } else {
     if (gibsWmsLayer && map.hasLayer(gibsWmsLayer)) {
@@ -862,7 +865,7 @@ function initMap() {
       if (map && !isNaN(lat) && !isNaN(lng)) {
         const bounds = L.latLngBounds([[lat, lng], [endLat, endLng]]);
         map.fitBounds(bounds, { padding: [80, 80], maxZoom: 11 });
-        emit('toast', '🔎 Zoomed into wind-blown smoke drift corridor');
+        emit('toast', 'Zoomed into wind-blown smoke drift corridor');
       }
       return;
     }
@@ -985,7 +988,7 @@ function handleLocationSelected(loc) {
   `;
 
   searchLocationMarker.bindPopup(popupHtml, { maxWidth: 320 }).openPopup();
-  emit('toast', `📍 Centered map on ${loc.name} (${loc.division || 'Sarawak'})`);
+  emit('toast', `Centered map on ${loc.name} (${loc.division || 'Sarawak'})`);
 }
 
 function renderAllLayers() {
@@ -1088,14 +1091,14 @@ function renderOfficialMarkers() {
             class="btn-forecast-station-action py-2 px-2.5 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/60 dark:hover:bg-orange-900/80 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 rounded-2xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
             data-station-id="${st.id}"
           >
-            <span>📈 Forecast</span>
+            <span>Forecast</span>
           </button>
           <button
             type="button"
             class="btn-moe-station-action py-2 px-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/60 dark:hover:bg-red-900/80 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-2xl text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
             data-station-id="${st.id}"
           >
-            <span>🏫 MOE SOP</span>
+            <span>MOE SOP</span>
           </button>
         </div>
       </div>
@@ -1327,16 +1330,13 @@ function renderHotspots() {
     const sensorLabel = isViirs ? 'VIIRS 375m' : 'MODIS 1km';
     const frpValue = h.frp ? Math.round(h.frp) : (isHigh ? 45 : 18);
 
-    const flameHtml = `
+    const hotspotPinHtml = `
       <div class="flex flex-col items-center group cursor-pointer -translate-x-1/2 -translate-y-1/2">
         <div class="relative flex items-center justify-center">
           <div class="absolute w-8 h-8 rounded-full ${isHigh ? 'bg-rose-500/40 animate-ping' : 'bg-amber-500/30'}"></div>
-          <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr ${isHigh ? 'from-rose-600 via-red-600 to-amber-500' : 'from-amber-600 to-yellow-500'} border-2 border-white dark:border-slate-900 shadow-xl flex items-center justify-center text-sm font-black text-white select-none">
-            🔥
+          <div class="relative w-8 h-8 rounded-full bg-gradient-to-tr ${isHigh ? 'from-rose-600 via-red-600 to-amber-500' : 'from-amber-600 to-yellow-500'} border-2 border-white dark:border-slate-900 shadow-xl flex items-center justify-center text-white font-mono font-bold text-xs select-none">
+            ${frpValue}
           </div>
-          <span class="absolute -top-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-black ${isTrans ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'} ring-1 ring-white/50">
-            ${isTrans ? 'IND' : 'MY'}
-          </span>
         </div>
         <div class="mt-1 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white font-mono text-[9px] font-bold border border-slate-700 shadow-md whitespace-nowrap flex items-center gap-1">
           <span>${frpValue} MW</span>
@@ -1346,7 +1346,7 @@ function renderHotspots() {
     `;
 
     const icon = L.divIcon({
-      html: flameHtml,
+      html: hotspotPinHtml,
       className: 'custom-hotspot-pin',
       iconSize: [0, 0]
     });
@@ -1406,7 +1406,7 @@ function renderHotspots() {
     });
     hotspotsLayer.addLayer(glowCircle);
 
-    const displayName = h.locationName || h.areaName || 'Active Fire Hotspot';
+    const displayName = h.locationName || h.areaName || 'Active Thermal Hotspot';
     const countryName = h.country || (isTrans ? 'West Kalimantan, Indonesia' : 'Sarawak, Malaysia');
     const brightnessC = h.brightness ? Math.round(h.brightness - 273.15) : null;
 
@@ -1414,7 +1414,7 @@ function renderHotspots() {
       <div class="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl border border-rose-200/80 dark:border-rose-900/80 shadow-2xl min-w-[280px] max-w-[320px]">
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
           <span class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1">
-            <span>🛰️</span> NASA FIRMS Active Fire
+            <span></span> NASA FIRMS Thermal Hotspot
           </span>
           <span class="text-[9px] font-bold px-2 py-0.5 rounded-lg ${isHigh ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'}">
             ${isHigh ? 'HIGH CONFIDENCE (≥80%)' : 'NOMINAL CONFIDENCE'}
@@ -1424,12 +1424,12 @@ function renderHotspots() {
         <div class="text-base font-bold text-slate-900 dark:text-white leading-snug">${displayName}</div>
         <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-2.5 flex items-center gap-1 flex-wrap">
           <span>${countryName}</span>
-          ${isTrans ? '<span class="px-1.5 py-0.2 rounded font-black text-[9px] bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">⚠️ TRANSBOUNDARY ORIGIN</span>' : '<span class="px-1.5 py-0.2 rounded font-bold text-[9px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">🔥 LOCAL PEAT BURN</span>'}
+          ${isTrans ? '<span class="px-1.5 py-0.2 rounded font-black text-[9px] bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800">TRANSBOUNDARY ORIGIN</span>' : '<span class="px-1.5 py-0.2 rounded font-bold text-[9px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">PEAT BURN ANOMALY</span>'}
         </div>
 
         <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-700/60 mb-2.5 text-xs">
           <div>
-            <div class="text-[10px] uppercase text-slate-400 font-bold">Fire Power (FRP)</div>
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Radiative Power (FRP)</div>
             <div class="text-sm font-mono font-black text-rose-600 dark:text-rose-400">${frpValue} MW</div>
           </div>
           <div>
@@ -1466,7 +1466,7 @@ function renderHotspots() {
             data-end-lat="${endLat}"
             data-end-lng="${endLng}"
           >
-            🔎 Zoom Smoke Corridor
+            Zoom Smoke Corridor
           </button>
           <button
             type="button"
@@ -1547,7 +1547,6 @@ function renderDivergences() {
     const badgeHtml = `
       <div class="flex flex-col items-center pointer-events-none -translate-x-1/2 -translate-y-1/2 cursor-pointer">
         <div class="relative px-2.5 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[10px] shadow-xl border border-amber-300 flex items-center gap-1.5 whitespace-nowrap pointer-events-auto">
-          <span>⚠️</span>
           <span>+${div.deltaAqi} AQI Divergence</span>
         </div>
       </div>

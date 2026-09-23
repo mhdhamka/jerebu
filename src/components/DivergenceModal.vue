@@ -36,7 +36,6 @@
       <!-- Overview Stats -->
       <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850/60 flex items-center justify-between text-xs">
         <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
           <span class="font-bold text-slate-700 dark:text-slate-200">{{ alerts.length }} Active Sensor Divergence Clusters Detected</span>
         </div>
         <span class="text-slate-400 text-[11px]">Radius: 25 km buffer</span>

@@ -18,6 +18,17 @@ export class PushNotificationService {
     }
   }
 
+  /**
+   * Initializes the push notification service, checking current permission states.
+   */
+  init() {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        this.saveConfig({ enabled: true });
+      }
+    }
+  }
+
   loadConfig() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
