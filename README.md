@@ -15,7 +15,7 @@
   <b>An environmental intelligence platform bridging official government air quality monitoring with neighborhood ground-truth observations, real-time satellite fire detection, and live aerodynamic wind dispersion across Sarawak, Malaysia, and Borneo.</b>
 </p>
 
-[Open Live Web App](https://mhdhamka.github.io/jerebu/) · [Architecture](#system-architecture) · [MOE SOP Guide](#moe-calculator) · [NASA FIRMS](#nasa-firms) · [Wind & Drift](#wind-drift) · [Reality Check](#reality-check) · [API Sandbox](#api-sandbox) · [Quickstart](#quickstart)
+[Live Demo](https://mhdhamka.github.io/jerebu/) · [Architecture](#system-architecture) · [MOE SOP Guide](#moe-calculator) · [NASA FIRMS](#nasa-firms) · [Wind & Drift](#wind-drift) · [Reality Check](#reality-check) · [API Sandbox](#api-sandbox) · [Quickstart](#quickstart)
 
 </div>
 
